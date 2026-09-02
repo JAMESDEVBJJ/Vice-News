@@ -1,0 +1,67 @@
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
+@media (min-width: 1024px) {
+  .sidebar {
+    position: sticky;
+    top: 5.5rem;
+  }
+}
+
+.block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.blockTitle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid var(--color-ink-800);
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-fog-300);
+}
+
+.blockTitle svg {
+  color: var(--color-neon-pink);
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  border: 1px solid var(--color-ink-700);
+  background: var(--color-ink-850);
+  padding: 0.4rem 0.85rem;
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--color-fog-300);
+  transition:
+    color 150ms,
+    border-color 150ms,
+    box-shadow 200ms;
+}
+
+.tag:hover {
+  color: var(--color-neon-pink);
+  border-color: color-mix(in srgb, var(--color-neon-pink) 50%, transparent);
+  box-shadow: 0 0 16px -6px color-mix(in srgb, var(--color-neon-pink) 65%, transparent);
+}

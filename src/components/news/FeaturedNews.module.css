@@ -1,0 +1,135 @@
+.article {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-radius: 1rem;
+  border: 1px solid var(--color-ink-800);
+  background: var(--color-ink-900);
+}
+
+.link {
+  display: block;
+}
+
+.media {
+  position: relative;
+  aspect-ratio: 16 / 11;
+  width: 100%;
+  overflow: hidden;
+  background: var(--color-ink-850);
+}
+
+@media (min-width: 768px) {
+  .media {
+    aspect-ratio: 16 / 10;
+  }
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 900ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.article:hover .image {
+  transform: scale(1.04);
+}
+
+.overlayTop {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    var(--color-ink-950),
+    color-mix(in srgb, var(--color-ink-950) 50%, transparent),
+    transparent
+  );
+}
+
+.overlayLeft {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to right,
+    color-mix(in srgb, var(--color-ink-950) 60%, transparent),
+    transparent
+  );
+}
+
+.badge {
+  position: absolute;
+  left: 1.25rem;
+  top: 1.25rem;
+}
+
+.body {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 1.25rem;
+}
+
+@media (min-width: 768px) {
+  .body {
+    padding: 2rem;
+  }
+}
+
+.title {
+  max-width: 42rem;
+  font-family: var(--font-display);
+  font-size: 1.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  line-height: 1.05;
+  letter-spacing: -0.025em;
+  color: var(--color-fog-100);
+}
+
+@media (min-width: 768px) {
+  .title {
+    font-size: 2.6rem;
+  }
+}
+
+.summary {
+  margin-top: 0.75rem;
+  max-width: 36rem;
+  font-size: 0.875rem;
+  line-height: 1.625;
+  color: var(--color-fog-300);
+}
+
+@media (min-width: 768px) {
+  .summary {
+    font-size: 1rem;
+  }
+}
+
+.footer {
+  margin-top: 1.25rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-family: var(--font-display);
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.025em;
+  color: var(--color-neon-pink);
+  opacity: 0;
+  transition: opacity 300ms;
+}
+
+.article:hover .cta {
+  opacity: 1;
+}

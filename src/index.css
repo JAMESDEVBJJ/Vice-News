@@ -1,0 +1,80 @@
+@import url("https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap");
+@import "tailwindcss";
+
+@theme {
+  --font-display: "Oswald", "Arial Narrow", sans-serif;
+  --font-body: "Inter", system-ui, sans-serif;
+
+  /* Ground */
+  --color-ink-950: #0a0709;
+  --color-ink-900: #100c10;
+  --color-ink-850: #161116;
+  --color-ink-800: #1c161d;
+  --color-ink-700: #2a2230;
+  --color-ink-600: #3a3040;
+
+  --color-fog-100: #f4f1f5;
+  --color-fog-300: #cdc6d1;
+  --color-fog-500: #9990a1;
+  --color-fog-600: #7b7284;
+
+  /* Vice neon accents */
+  --color-neon-pink: #ff3d8b;
+  --color-neon-magenta: #e0219a;
+  --color-neon-purple: #9d5cff;
+  --color-neon-amber: #ff9d3d;
+}
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    background-color: var(--color-ink-950);
+    color: var(--color-fog-100);
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection {
+    background: var(--color-neon-pink);
+    color: #fff;
+  }
+
+  /* Hide scrollbar until scrolling */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+  }
+  *:hover {
+    scrollbar-color: var(--color-ink-700) transparent;
+  }
+}
+
+@layer utilities {
+  .font-display {
+    font-family: var(--font-display);
+  }
+
+  /* Subtle RGB neon glow for the VI mark */
+  .vi-glow {
+    text-shadow: 0 0 1px rgba(255, 61, 139, 0.5),
+      0 0 12px rgba(255, 61, 139, 0.28), 0 0 22px rgba(157, 92, 255, 0.22),
+      0 0 34px rgba(255, 157, 61, 0.14);
+  }
+
+  .neon-text {
+    background: linear-gradient(
+      100deg,
+      var(--color-neon-amber),
+      var(--color-neon-pink) 45%,
+      var(--color-neon-purple)
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+}

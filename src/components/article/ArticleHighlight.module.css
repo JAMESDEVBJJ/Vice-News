@@ -1,0 +1,54 @@
+.box {
+  position: relative;
+  overflow: hidden;
+  border-radius: 0.9rem;
+  border: 1px solid color-mix(in srgb, var(--color-neon-magenta) 32%, transparent);
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--color-neon-magenta) 9%, var(--color-ink-850)),
+      var(--color-ink-850)
+    );
+  padding: 1.4rem 1.5rem;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-neon-pink) 8%, transparent),
+    0 18px 40px -28px color-mix(in srgb, var(--color-neon-magenta) 70%, transparent);
+}
+
+.box::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: linear-gradient(
+    180deg,
+    var(--color-neon-pink),
+    var(--color-neon-purple)
+  );
+  box-shadow: 0 0 12px color-mix(in srgb, var(--color-neon-pink) 60%, transparent);
+}
+
+.compact {
+  padding: 1.15rem 1.25rem;
+}
+
+.label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: var(--color-neon-pink);
+}
+
+.text {
+  margin: 0.65rem 0 0;
+  color: var(--color-fog-300);
+  font-size: 0.98rem;
+  line-height: 1.6;
+}
+
+.compact .text {
+  font-size: 0.92rem;
+}

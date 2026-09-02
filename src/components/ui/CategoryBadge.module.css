@@ -1,0 +1,17 @@
+.badge {
+  font-family: var(--font-display);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+}
+
+.solid {
+  display: inline-block;
+  border-radius: 0.125rem;
+  padding: 0.25rem 0.625rem;
+  font-family: var(--font-display);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  color: #fff;
+}
