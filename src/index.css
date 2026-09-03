@@ -5,7 +5,6 @@
   --font-display: "Oswald", "Arial Narrow", sans-serif;
   --font-body: "Inter", system-ui, sans-serif;
 
-  /* Ground */
   --color-ink-950: #0a0709;
   --color-ink-900: #100c10;
   --color-ink-850: #161116;
@@ -18,13 +17,11 @@
   --color-fog-500: #9990a1;
   --color-fog-600: #7b7284;
 
-  /* Vice neon accents */
   --color-neon-pink: #ff3d8b;
   --color-neon-magenta: #e0219a;
   --color-neon-purple: #9d5cff;
   --color-neon-amber: #ff9d3d;
 }
-
 
 @layer base {
   html,
@@ -45,7 +42,6 @@
     color: #fff;
   }
 
-  /* Hide scrollbar until scrolling */
   * {
     scrollbar-width: thin;
     scrollbar-color: transparent transparent;
@@ -60,7 +56,6 @@
     font-family: var(--font-display);
   }
 
-  /* Subtle RGB neon glow for the VI mark */
   .vi-glow {
     text-shadow: 0 0 1px rgba(255, 61, 139, 0.5),
       0 0 12px rgba(255, 61, 139, 0.28), 0 0 22px rgba(157, 92, 255, 0.22),
@@ -78,4 +73,8 @@
     background-clip: text;
     color: transparent;
   }
+}
+
+html {
+  scroll-behavior: smooth;
 }

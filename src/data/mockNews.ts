@@ -1,44 +1,43 @@
-/**
- * DADOS DE DEMONSTRAÇÃO — conteúdo fictício para desenvolvimento.
- * Nada aqui representa informação oficial da Rockstar Games.
- * Estrutura preparada para futuramente consumir uma API ASP.NET Core.
- */
-
-export type NewsCategory = "GAMEPLAY" | "PERSONAGENS" | "ROCKSTAR" | "VAZAMENTOS" | "RUMORES"
+//dados mockados ficticios para testes
+export type NewsCategory =
+  | "GAMEPLAY"
+  | "PERSONAGENS"
+  | "ROCKSTAR"
+  | "VAZAMENTOS"
+  | "RUMORES";
 
 export interface NewsArticle {
-  id: number
-  title: string
-  category: NewsCategory
-  summary: string
-  image: string
-  author: string
-  publishedAt: string // ISO date
-  readingTime: number // minutos
-  featured?: boolean
+  id: number;
+  title: string;
+  category: NewsCategory;
+  summary: string;
+  image: string;
+  author: string;
+  publishedAt: string;
+  readingTime: number;
+  featured?: boolean;
 }
 
 export interface Guide {
-  id: number
-  title: string
-  category: string
-  image: string
-  readingTime: number
+  id: number;
+  title: string;
+  category: string;
+  image: string;
+  readingTime: number;
 }
 
-/** Filtros da seção "Últimas Notícias". */
 export const CATEGORY_FILTERS = [
   "TODAS",
   "ROCKSTAR",
   "VAZAMENTOS",
   "RUMORES",
   "GAMEPLAY",
-] as const
+] as const;
 
-export type CategoryFilter = typeof CATEGORY_FILTERS[number]
+export type CategoryFilter = (typeof CATEGORY_FILTERS)[number];
 
 const img = (id: string, w = 800, h = 600) =>
-  `https://images.unsplash.com/photo-${id}?w=${w}&h=${h}&fit=crop&auto=format`
+  `https://images.unsplash.com/photo-${id}?w=${w}&h=${h}&fit=crop&auto=format`;
 
 export const featuredArticle: NewsArticle = {
   id: 1,
@@ -51,7 +50,7 @@ export const featuredArticle: NewsArticle = {
   publishedAt: "2026-08-15",
   readingTime: 5,
   featured: true,
-}
+};
 
 export const secondaryArticles: NewsArticle[] = [
   {
@@ -78,7 +77,7 @@ export const secondaryArticles: NewsArticle[] = [
     publishedAt: "2026-08-13",
     readingTime: 5,
   },
-]
+];
 
 /** Coluna lateral de destaques compactos. */
 export const columnArticles: NewsArticle[] = [
@@ -117,7 +116,7 @@ export const columnArticles: NewsArticle[] = [
     publishedAt: "2026-08-15",
     readingTime: 8,
   },
-]
+];
 
 export const latestNews: NewsArticle[] = [
   {
@@ -164,7 +163,7 @@ export const latestNews: NewsArticle[] = [
     publishedAt: "2026-08-08",
     readingTime: 5,
   },
-]
+];
 
 export const guides: Guide[] = [
   {
@@ -190,4 +189,4 @@ export const guides: Guide[] = [
       "https://preview.redd.it/screenshots-in-hdr-in-4k-v0-srnipznnu7ze1.jpg?width=3840&format=pjpg&auto=webp&s=b6b6240b116c15a9b8a5d14c6727d5e41c2e5881",
     readingTime: 6,
   },
-]
+];

@@ -1,0 +1,171 @@
+.card {
+  border: 1px solid var(--color-ink-800);
+  border-radius: 0.85rem;
+  background: var(--color-ink-900);
+  overflow: hidden;
+  transition: border-color 150ms;
+}
+
+.card:focus-within {
+  border-color: color-mix(in srgb, var(--color-neon-purple) 45%, transparent);
+}
+
+.cardError {
+  border-color: color-mix(in srgb, var(--color-neon-pink) 55%, transparent);
+}
+
+.cardHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.6rem 0.75rem 0.6rem 1rem;
+  background: var(--color-ink-850);
+  border-bottom: 1px solid var(--color-ink-800);
+}
+
+.type {
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-neon-pink);
+}
+
+.controls {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.ctrl {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.9rem;
+  height: 1.9rem;
+  border-radius: 0.45rem;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--color-fog-500);
+  cursor: pointer;
+  transition:
+    color 150ms,
+    background 150ms,
+    border-color 150ms;
+}
+
+.ctrl:hover:not(:disabled) {
+  color: var(--color-fog-100);
+  background: var(--color-ink-800);
+  border-color: var(--color-ink-700);
+}
+
+.ctrl:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.ctrlDanger:hover:not(:disabled) {
+  color: var(--color-neon-pink);
+}
+
+.ctrl:focus-visible {
+  outline: 2px solid var(--color-neon-purple);
+  outline-offset: 1px;
+}
+
+.cardBody {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  padding: 0.9rem 1rem 1rem;
+}
+
+.input,
+.textarea {
+  width: 100%;
+  border: 1px solid var(--color-ink-700);
+  border-radius: 0.55rem;
+  background: var(--color-ink-950);
+  color: var(--color-fog-100);
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  padding: 0.6rem 0.75rem;
+  transition:
+    border-color 150ms,
+    box-shadow 150ms;
+}
+
+.textarea {
+  resize: vertical;
+  line-height: 1.6;
+}
+
+.input::placeholder,
+.textarea::placeholder {
+  color: var(--color-fog-600);
+}
+
+.input:focus,
+.textarea:focus {
+  outline: none;
+  border-color: color-mix(in srgb, var(--color-neon-pink) 55%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-neon-pink) 16%, transparent);
+}
+
+.imgPreview {
+  width: 100%;
+  max-height: 180px;
+  object-fit: cover;
+  border-radius: 0.55rem;
+  border: 1px solid var(--color-ink-800);
+}
+
+.subList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.subRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.subFields {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.addSub {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: 1px dashed var(--color-ink-700);
+  border-radius: 0.55rem;
+  background: transparent;
+  color: var(--color-fog-300);
+  font-size: 0.85rem;
+  padding: 0.45rem 0.75rem;
+  cursor: pointer;
+  transition:
+    color 150ms,
+    border-color 150ms;
+}
+
+.addSub:hover {
+  color: var(--color-neon-pink);
+  border-color: color-mix(in srgb, var(--color-neon-pink) 50%, transparent);
+}
+
+.error {
+  margin: 0;
+  color: var(--color-neon-pink);
+  font-size: 0.82rem;
+}
