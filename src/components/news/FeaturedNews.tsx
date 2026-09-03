@@ -1,11 +1,10 @@
-import { ArrowUpRight } from "lucide-react"
-import type { NewsArticle } from "../../data/mockNews.ts"
-import CategoryBadge from "../ui/CategoryBadge"
-import ArticleMeta from "../ui/ArticleMeta"
-import styles from "./FeaturedNews.module.css"
+import { ArrowUpRight } from "lucide-react";
+import type { NewsArticle } from "../../data/mockNews.ts";
+import ArticleMeta from "../ui/ArticleMeta";
+import styles from "./FeaturedNews.module.css";
 
 interface FeaturedNewsProps {
-  article: NewsArticle
+  article: NewsArticle;
 }
 
 export default function FeaturedNews({ article }: FeaturedNewsProps) {
@@ -44,5 +43,5 @@ export default function FeaturedNews({ article }: FeaturedNewsProps) {
         </div>
       </a>
     </article>
-  )
+  );
 }

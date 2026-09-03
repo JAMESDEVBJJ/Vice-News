@@ -25,7 +25,6 @@
   }
 }
 
-/* Navegação desktop */
 .nav {
   display: none;
   align-items: center;
@@ -66,7 +65,6 @@
   width: 100%;
 }
 
-/* Ações à direita */
 .actions {
   display: flex;
   align-items: center;
@@ -79,18 +77,18 @@
   gap: 0.45rem;
   border-radius: 9999px;
   border: 1px solid color-mix(in srgb, var(--color-neon-pink) 40%, transparent);
-  background: color-mix(in srgb, var(--color-neon-pink) 12%, var(--color-ink-900));
+  background: color-mix(
+    in srgb,
+    var(--color-neon-pink) 12%,
+    var(--color-ink-900)
+  );
   padding: 0.5rem 1rem;
   font-family: var(--font-display);
   font-size: 0.9rem;
   font-weight: 600;
   letter-spacing: 0.02em;
   color: var(--color-fog-100);
-  transition:
-    color 200ms,
-    border-color 200ms,
-    box-shadow 200ms,
-    transform 200ms;
+  transition: color 200ms, border-color 200ms, box-shadow 200ms, transform 200ms;
 }
 
 .postButton:hover {
@@ -161,7 +159,6 @@
   }
 }
 
-/* Botões redondos de ícone */
 .iconButton {
   display: grid;
   width: 2.5rem;
@@ -194,7 +191,6 @@
   }
 }
 
-/* Navegação mobile */
 .mobileNav {
   border-top: 1px solid var(--color-ink-800);
   background: var(--color-ink-950);

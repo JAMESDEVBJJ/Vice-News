@@ -45,7 +45,7 @@ export const featuredArticle: NewsArticle = {
   category: "ROCKSTAR",
   summary:
     "Exibido hoje na Netflix, o especial reúne quase 30 minutos de material inteiramente capturado dentro do próprio jogo, misturando exploração do mundo aberto e cenas cinematográficas.",
-  image: "https://i.imgur.com/jS9dykA.png",
+  image: "https://www.rockstargames.com/VI/_next/static/media/Vice_City_11.09paum3g942sc.jpg",
   author: "James",
   publishedAt: "2026-08-15",
   readingTime: 5,
@@ -79,7 +79,6 @@ export const secondaryArticles: NewsArticle[] = [
   },
 ];
 
-/** Coluna lateral de destaques compactos. */
 export const columnArticles: NewsArticle[] = [
   {
     id: 4,
@@ -142,23 +141,24 @@ export const latestNews: NewsArticle[] = [
   },
   {
     id: 9,
-    title: "Vazamento revela sistema de crime e polícia renovado",
-    category: "VAZAMENTOS",
-    summary:
-      "IA das forças policiais reagirá de forma dinâmica às ações do jogador.",
-    image: "https://i.imgur.com/nJajfoZ.png",
-    author: "James",
-    publishedAt: "2026-08-10",
-    readingTime: 4,
+    title:
+      "GTA VI pode ter novidades importantes no mapa de Vice City, segundo novas informações",
+    category: "ROCKSTAR",
+    summary: "Novidades surgem até a data de lançamento segundo diretores.",
+    image:
+      "https://www.rockstargames.com/VI/_next/static/media/Jason_and_Lucia_10.0cauoz34524-..jpg",
+    author: "Ana Rocha",
+    publishedAt: "2026-08-08",
+    readingTime: 5,
   },
   {
     id: 10,
     title: "Todas as musicas que teve no novo Trailer 3 Extended Look",
-    category: "ROCKSTAR",
+    category: "GAMEPLAY",
     summary:
-      "Cronograma pode ter mudado para priorizar estabilidade no lançamento.",
+      "O recém-lançado Trailer 3 'Extended Look' de GTA VI trouxe cenas eletrizantes de Vice City embaladas por uma curadoria musical impecável. Confira a lista completa das faixas que marcaram o vídeo..",
     image:
-      "https://sm.ign.com/t/ign_pt/photo/default/mega-9-1787856672032_e57k.1400.jpg",
+      "https://www.rockstargames.com/VI/_next/static/media/Jason_and_Lucia_Beach_landscape.0419q._86ukpt.jpg",
     author: "Ana Rocha",
     publishedAt: "2026-08-08",
     readingTime: 5,

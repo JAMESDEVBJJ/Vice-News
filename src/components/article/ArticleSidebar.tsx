@@ -1,5 +1,5 @@
 import { Tag } from "lucide-react"
-import type { NewsArticle } from "../../../ViceNewsBR/data/mockNews"
+import type { NewsArticle } from "../../data/mockNews";
 import ColumnCard from "../news/ColumnCard"
 import SocialShare from "./SocialShare"
 import styles from "./ArticleSidebar.module.css"
@@ -11,7 +11,6 @@ interface ArticleSidebarProps {
 }
 
 export default function ArticleSidebar({
-  note,
   related,
   tags,
 }: ArticleSidebarProps) {

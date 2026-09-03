@@ -10,9 +10,16 @@
   z-index: -10;
   height: 480px;
   opacity: 0.35;
-  background:
-    radial-gradient(120% 90% at 15% 0%, rgba(255, 61, 139, 0.1), transparent 55%),
-    radial-gradient(120% 90% at 90% 0%, rgba(157, 92, 255, 0.12), transparent 55%);
+  background: radial-gradient(
+      120% 90% at 15% 0%,
+      rgba(255, 61, 139, 0.1),
+      transparent 55%
+    ),
+    radial-gradient(
+      120% 90% at 90% 0%,
+      rgba(157, 92, 255, 0.12),
+      transparent 55%
+    );
 }
 
 .topbar {
@@ -101,10 +108,7 @@
   padding: 0.55rem 0.9rem;
   border-radius: 0.55rem;
   cursor: pointer;
-  transition:
-    color 150ms,
-    background 150ms,
-    border-color 150ms,
+  transition: color 150ms, background 150ms, border-color 150ms,
     box-shadow 200ms;
 }
 
@@ -122,7 +126,11 @@
 .toggleOn {
   color: var(--color-neon-amber);
   border-color: color-mix(in srgb, var(--color-neon-amber) 55%, transparent);
-  background: color-mix(in srgb, var(--color-neon-amber) 12%, var(--color-ink-850));
+  background: color-mix(
+    in srgb,
+    var(--color-neon-amber) 12%,
+    var(--color-ink-850)
+  );
 }
 
 .btnGhost {
@@ -139,13 +147,21 @@
 .btnPrimary {
   border: 1px solid color-mix(in srgb, var(--color-neon-pink) 45%, transparent);
   color: var(--color-fog-100);
-  background: color-mix(in srgb, var(--color-neon-pink) 14%, var(--color-ink-850));
+  background: color-mix(
+    in srgb,
+    var(--color-neon-pink) 14%,
+    var(--color-ink-850)
+  );
 }
 
 .btnPrimary:hover {
   color: #fff;
   border-color: color-mix(in srgb, var(--color-neon-pink) 70%, transparent);
-  background: color-mix(in srgb, var(--color-neon-pink) 20%, var(--color-ink-850));
+  background: color-mix(
+    in srgb,
+    var(--color-neon-pink) 20%,
+    var(--color-ink-850)
+  );
   box-shadow: 0 0 20px -8px color-mix(in srgb, var(--color-neon-pink) 65%, transparent);
 }
 
@@ -156,7 +172,6 @@
   outline-offset: 2px;
 }
 
-/* ---------- Tabs (mobile) ---------- */
 .tabs {
   display: flex;
   gap: 0.25rem;
@@ -182,7 +197,11 @@
 .tabActive {
   color: var(--color-neon-pink);
   border-color: color-mix(in srgb, var(--color-neon-pink) 50%, transparent);
-  background: color-mix(in srgb, var(--color-neon-pink) 10%, var(--color-ink-900));
+  background: color-mix(
+    in srgb,
+    var(--color-neon-pink) 10%,
+    var(--color-ink-900)
+  );
 }
 
 @media (min-width: 1024px) {
@@ -191,7 +210,6 @@
   }
 }
 
-/* ---------- Banner ---------- */
 .banner {
   margin: 1rem auto 0;
   max-width: 1600px;
@@ -212,8 +230,13 @@
 }
 
 .bannerOk {
-  border: 1px solid color-mix(in srgb, var(--color-neon-purple) 45%, transparent);
-  background: color-mix(in srgb, var(--color-neon-purple) 12%, var(--color-ink-900));
+  border: 1px solid
+    color-mix(in srgb, var(--color-neon-purple) 45%, transparent);
+  background: color-mix(
+    in srgb,
+    var(--color-neon-purple) 12%,
+    var(--color-ink-900)
+  );
   color: var(--color-fog-100);
 }
 
@@ -237,7 +260,6 @@
   opacity: 1;
 }
 
-/* ---------- Layout ---------- */
 .main {
   margin-inline: auto;
   max-width: 1600px;
@@ -277,7 +299,6 @@
   }
 }
 
-/* ---------- Panels ---------- */
 .panel {
   border: 1px solid var(--color-ink-800);
   border-radius: 0.9rem;
@@ -347,9 +368,7 @@
   font-family: var(--font-body);
   font-size: 0.95rem;
   padding: 0.6rem 0.75rem;
-  transition:
-    border-color 150ms,
-    box-shadow 150ms;
+  transition: border-color 150ms, box-shadow 150ms;
 }
 
 .textarea {
@@ -372,7 +391,8 @@
 .select:focus {
   outline: none;
   border-color: color-mix(in srgb, var(--color-neon-pink) 55%, transparent);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-neon-pink) 16%, transparent);
+  box-shadow: 0 0 0 3px
+    color-mix(in srgb, var(--color-neon-pink) 16%, transparent);
 }
 
 .readonly {
@@ -390,7 +410,6 @@
   font-size: 0.82rem;
 }
 
-/* ---------- Tags ---------- */
 .tagBox {
   display: flex;
   flex-wrap: wrap;
@@ -404,7 +423,8 @@
 
 .tagBox:focus-within {
   border-color: color-mix(in srgb, var(--color-neon-pink) 55%, transparent);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-neon-pink) 16%, transparent);
+  box-shadow: 0 0 0 3px
+    color-mix(in srgb, var(--color-neon-pink) 16%, transparent);
 }
 
 .tagChip {
@@ -412,7 +432,11 @@
   align-items: center;
   gap: 0.3rem;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--color-neon-pink) 14%, var(--color-ink-850));
+  background: color-mix(
+    in srgb,
+    var(--color-neon-pink) 14%,
+    var(--color-ink-850)
+  );
   border: 1px solid color-mix(in srgb, var(--color-neon-pink) 32%, transparent);
   color: var(--color-fog-100);
   font-size: 0.8rem;
@@ -451,7 +475,6 @@
   color: var(--color-fog-600);
 }
 
-/* ---------- Cover ---------- */
 .coverPreview {
   width: 100%;
   max-height: 220px;
@@ -460,7 +483,6 @@
   border: 1px solid var(--color-ink-800);
 }
 
-/* ---------- Blocks ---------- */
 .emptyState {
   display: flex;
   align-items: center;
@@ -501,10 +523,7 @@
   border-radius: 0.6rem;
   padding: 0.6rem 1.1rem;
   cursor: pointer;
-  transition:
-    border-color 150ms,
-    box-shadow 200ms,
-    color 150ms;
+  transition: border-color 150ms, box-shadow 200ms, color 150ms;
 }
 
 .addBlock:hover {
@@ -539,9 +558,7 @@
   color: var(--color-fog-300);
   font-size: 0.88rem;
   cursor: pointer;
-  transition:
-    background 150ms,
-    color 150ms;
+  transition: background 150ms, color 150ms;
 }
 
 .addMenuItem:hover {
@@ -549,7 +566,6 @@
   color: var(--color-neon-pink);
 }
 
-/* ---------- Preview column ---------- */
 .previewColumn {
   min-width: 0;
 }

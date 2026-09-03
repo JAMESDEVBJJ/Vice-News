@@ -26,92 +26,87 @@ export interface FullArticle {
 }
 
 export const article: FullArticle = {
-  id: 100,
-  category: "VAZAMENTOS",
-  title:
-    "GTA VI pode ter novidades importantes no mapa de Vice City, segundo novas informações",
+  id: 101,
+  category: "GAMEPLAY",
+  title: "Todas as músicas que tocaram no novo Trailer 3 Extended Look",
   summary:
-    "Novos detalhes publicados recentemente reacendem discussões entre a comunidade sobre o mapa e a ambientação do próximo jogo da Rockstar.",
+    "O recém-lançado Trailer 3 'Extended Look' de GTA VI trouxe cenas eletrizantes de Vice City embaladas por uma curadoria musical impecável. Confira a lista completa das faixas que marcaram o vídeo.",
   author: "James",
-  publishedAt: "2026-08-30",
-  readingTime: 6,
-  heroImage: "https://i.imgur.com/jS9dykA.png",
+  publishedAt: "2026-09-03",
+  readingTime: 4,
+  heroImage:
+    "https://www.rockstargames.com/VI/_next/static/media/Jason_and_Lucia_Beach_landscape.0419q._86ukpt.jpg",
   heroCaption:
-    "Cenário costeiro de Vice City ao entardecer — imagem capturada dentro do jogo.",
+    "A atmosfera vibrante de Vice City, onde a música dita o ritmo da cidade.",
   content: [
     {
       type: "paragraph",
-      text: "Nas últimas semanas, uma série de relatos ganhou tração dentro da comunidade de GTA VI. Segundo fontes que acompanham de perto o desenvolvimento, a Rockstar estaria expandindo áreas do mapa de Vice City que, até então, apareciam apenas de forma marginal nos materiais oficiais divulgados pelo estúdio.",
+      text: "O lançamento surpresa do aguardado Trailer 3 'Extended Look' de GTA VI dominou as redes sociais nesta manhã. Além das melhorias gráficas notáveis e novos detalhes sobre a relação de Jason e Lucia, um elemento clássico da Rockstar roubou a cena: a trilha sonora.",
     },
     {
       type: "paragraph",
-      text: "Ainda que nada tenha sido confirmado, o volume e a consistência das informações fizeram com que jogadores voltassem a discutir o tamanho real do mundo aberto e a densidade das regiões que ligam o centro urbano às zonas costeiras e pantanosas do estado fictício de Leonida.",
+      text: "Diferente do primeiro trailer, que focou em uma única música para definir o clima, o 'Extended Look' funcionou quase como uma demonstração das estações de rádio do jogo, apresentando diferentes faixas que se alinhavam dinamicamente com as transições de cenários e ações.",
     },
     {
       type: "heading",
-      text: "O que as novas informações indicam",
+      text: "A Lista Completa de Músicas",
     },
     {
       type: "paragraph",
-      text: "De acordo com os relatos, o foco não estaria apenas em ampliar a extensão do mapa, mas em aumentar a variedade de sistemas que reagem ao jogador. Isso inclui desde o comportamento do trânsito até a forma como diferentes bairros mudam de atmosfera ao longo do dia e da noite.",
+      text: "Graças aos esforços conjuntos da comunidade, que analisou cada segmento de áudio do trailer de 3 minutos, conseguimos identificar todas as canções licenciadas (e uma possível faixa original). Veja a lista:",
+    },
+    {
+      type: "list",
+      items: [
+        "Tom Petty - 'Runnin' Down A Dream' (Toca durante a cena inicial nas rodovias de Leonida)",
+        "The Weeknd - 'Blinding Lights' (Marca a transição para a vibrante vida noturna de Vice City)",
+        "Anita Ward - 'Ring My Bell' (Som de fundo no trecho que mostra o interior do clube noturno)",
+        "Faixa Instrumental Desconhecida - (Toca durante a fuga intensa da polícia no final; possivelmente uma música original composta para GTA VI)",
+      ],
     },
     {
       type: "highlight",
-      label: "PONTO DESTAQUE",
-      text: "Novas fontes indicam uma integração profunda de sistemas meteorológicos, incluindo tempestades dinâmicas e marés que alteram áreas costeiras.",
+      label: "CURIOSIDADE",
+      text: "A inclusão de Tom Petty reforça o gosto musical da equipe de áudio da Rockstar, que já havia utilizado brilhantemente 'Love Is A Long Road' do mesmo artista no Trailer 1.",
+    },
+    {
+      type: "heading",
+      text: "O Impacto da Curadoria Musical",
     },
     {
       type: "paragraph",
-      text: "Se confirmado, esse nível de simulação seria um salto significativo em relação aos jogos anteriores da série, aproximando a experiência de um mundo verdadeiramente vivo — onde o ambiente deixa de ser cenário e passa a influenciar diretamente a jogabilidade.",
+      text: "Em poucas horas, as músicas licenciadas apresentaram um salto gigantesco de reproduções nas plataformas de streaming como o Spotify e Apple Music. Isso demonstra o poder cultural que a franquia Grand Theft Auto ainda exerce sobre a indústria fonográfica global.",
     },
     {
       type: "gallery",
       images: [
         {
-          src: "https://sm.ign.com/t/ign_pt/photo/default/mega-14-1787856672033_ccde.1400.jpg",
-          alt: "Vista aérea de uma avenida movimentada de Vice City",
+          src: "https://www.rockstargames.com/VI/_next/static/media/DreQuan_Priest_landscape.0_b7hszyze6cy.jpg",
+          alt: "Cenário de um trapper no baile de vice city.",
         },
         {
-          src: "https://sm.ign.com/t/ign_pt/photo/default/mega-9-1787856672032_e57k.1400.jpg",
-          alt: "Orla de Vice City iluminada pelo pôr do sol",
+          src: "https://www.rockstargames.com/VI/_next/static/media/Lucia_Caminos_10.0s770xrip~yb..jpg",
+          alt: "Perseguição de carros em alta velocidade pelas ruas de Leonida",
         },
-      ],
-    },
-    {
-      type: "heading",
-      text: "Por que a comunidade levou a sério",
-    },
-    {
-      type: "paragraph",
-      text: "Boa parte da credibilidade dessas informações vem do histórico de acertos de algumas das fontes envolvidas. Além disso, os detalhes se encaixam com pistas já presentes nos trailers oficiais, o que reforça a percepção de que não se trata apenas de especulação isolada.",
-    },
-    {
-      type: "list",
-      items: [
-        "Referências recorrentes a regiões costeiras ainda não exploradas nos trailers.",
-        "Indícios de um ciclo climático mais agressivo e imprevisível.",
-        "Mudanças de ambientação entre bairros ao longo do dia.",
       ],
     },
     {
       type: "quote",
-      text: "A ambição do mapa parece ser transformar Vice City em um personagem por si só — algo que respira e reage.",
-      cite: "Fonte próxima ao desenvolvimento",
+      text: "A música no GTA sempre serviu para capturar a essência de uma era e de um local. Vice City exige aquele contraste entre o glamour ensolarado e a sujeira noturna, e essa trilha resumiu isso perfeitamente.",
+      cite: "Comunidade GTA Forums",
     },
     {
       type: "paragraph",
-      text: "Vale reforçar que, até um anúncio oficial da Rockstar, tudo deve ser tratado com cautela. Ainda assim, o entusiasmo em torno do mapa mostra o quanto Vice City segue sendo o coração das expectativas da comunidade para GTA VI.",
+      text: "Ainda não sabemos se a Rockstar vai lançar uma playlist oficial em breve, mas os fãs já se encarregaram de compilar essas músicas e criar suas próprias 'rádios' para entrar no clima do jogo enquanto aguardam o lançamento oficial.",
     },
   ],
-  tags: ["GTA VI", "Vazamentos", "Vice City"],
+  tags: ["GTA VI", "Trailer", "Música", "Trilha Sonora", "Vice City"],
   sidebarNote: {
-    label: "PONTO DESTAQUE",
-    text: "Novas fontes indicam uma integração profunda de sistemas meteorológicos, incluindo tempestades dinâmicas e marés que alteram áreas costeiras.",
+    label: "FEBRE NO SPOTIFY",
+    text: "Fãs já criaram dezenas de playlists recriando a 'Vibe Vice City' com base nas faixas reveladas neste trailer, acumulando milhares de curtidas.",
   },
 };
 
-/** Notícia em miniatura exibida na sidebar. */
 export const sidebarHighlight = columnArticles[0];
 
-/** Notícias exibidas na seção "Leia também". */
 export const relatedNews = latestNews.slice(0, 3);
