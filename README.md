@@ -1,75 +1,48 @@
-# React + TypeScript + Vite
+# Vice News
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Portal brasileiro de notícias e conteúdo sobre **GTA VI**, desenvolvido com React e TypeScript.
 
-Currently, two official plugins are available:
+O projeto tem como objetivo criar uma experiência editorial moderna, rápida e responsiva para acompanhar as principais notícias, rumores, vazamentos, informações e guias relacionados ao próximo título da Rockstar Games.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+> Projeto independente e não afiliado à Rockstar Games.
 
-## React Compiler
+##  Sobre o projeto
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+O **Vice News** nasceu como um projeto pessoal para explorar a criação de um portal de notícias completo, desde a arquitetura da informação e identidade visual até o desenvolvimento do Front End e futura integração com uma API.
 
-## Expanding the ESLint configuration
+A proposta visual combina uma interface **dark editorial** com elementos inspirados na atmosfera de Vice City, utilizando tons de rosa, roxo e laranja como acentos.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## 🚀 Tecnologias
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+- React
+- TypeScript
+- Vite
+- CSS
+- Lucide React
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+### Futuramente
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+- ASP.NET Core Web API
+- PostgreSQL
+- Sistema de gerenciamento de notícias
+- Autenticação administrativa
+- SEO
+- Google Analytics
+- Google Search Console
+- Monetização com anúncios
 
-```
+## 📁 Estrutura
 
-You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
-```
+```text
+src/
+├── components/
+│   ├── layout/
+│   ├── news/
+│   ├── gta/
+│   └── guides/
+├── pages/
+│   └── Home/
+├── data/
+├── styles/
+├── types/
+└── App.tsx
