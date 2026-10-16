@@ -91,8 +91,11 @@ export function validateForm(data: NewsFormData): FormErrors {
   const errors: FormErrors = { blocks: {} };
 
   if (!data.title.trim()) errors.title = "Informe um título.";
+  
   if (!data.summary.trim()) errors.summary = "Informe um resumo.";
+
   if (!data.heroImage.trim()) errors.heroImage = "Adicione uma imagem de capa.";
+
   if (data.content.length === 0)
     errors.content = "Adicione ao menos um bloco de conteúdo.";
 
