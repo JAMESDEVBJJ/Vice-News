@@ -343,7 +343,20 @@ export default function VehicleRegistration({
                   placeholder="GTA$"
                   value={vehicle.price}
                   onChange={(e) => update("price", e.target.value)}
+                  aria-invalid={Boolean(errors.price)}
+                  aria-describedby={
+                    errors.price ? id("price-error") : undefined
+                  }
                 />
+                {errors.price && (
+                  <p
+                    id={id("price-error")}
+                    className={styles.fieldError}
+                    role="alert"
+                  >
+                    {errors.price}
+                  </p>
+                )}
               </div>
 
               <div className={styles.field}>
@@ -511,6 +524,15 @@ export default function VehicleRegistration({
                 {imageStatus}
               </p>
             </div>
+            {errors.imageUrl && (
+              <p
+                id={id("imageUrl-error")}
+                className={styles.fieldError}
+                role="alert"
+              >
+                {errors.imageUrl}
+              </p>
+            )}
           </section>
 
           <div className={styles.actions}>
