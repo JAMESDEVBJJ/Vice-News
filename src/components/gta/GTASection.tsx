@@ -1,4 +1,11 @@
-import { Car, CheckCircle2, Gamepad2, Map, Users, type LucideIcon } from "lucide-react";
+import {
+  Car,
+  CheckCircle2,
+  Gamepad2,
+  Map,
+  Users,
+  type LucideIcon,
+} from "lucide-react";
 import SectionHeading from "../ui/SectionHeading";
 import styles from "./GTASection.module.css";
 
@@ -11,14 +18,18 @@ interface GTAHub {
 const HUBS: GTAHub[] = [
   { label: "MAPA", icon: Map, href: "#" },
   { label: "PERSONAGENS", icon: Users, href: "#" },
-  { label: "VEÍCULOS", icon: Car, href: "#" },
+  { label: "VEÍCULOS", icon: Car, href: "/veiculos" },
   { label: "GAMEPLAY", icon: Gamepad2, href: "#" },
   { label: "TUDO CONFIRMADO", icon: CheckCircle2, href: "#" },
 ];
 
 export default function GTASection() {
   return (
-    <section id="gta-vi" aria-labelledby="gta-heading" className={styles.section}>
+    <section
+      id="gta-vi"
+      aria-labelledby="gta-heading"
+      className={styles.section}
+    >
       <SectionHeading
         id="gta-heading"
         eyebrow="SEÇÃO GTA VI"

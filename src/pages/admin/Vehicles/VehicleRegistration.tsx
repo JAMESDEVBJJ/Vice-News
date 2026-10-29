@@ -377,9 +377,6 @@ export default function VehicleRegistration({
             >
               Limpar
             </button>
-            <button type="submit" className={styles.btnPrimary}>
-              Cadastrar veículo
-            </button>
           </div>
         </form>
 

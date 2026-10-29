@@ -4,6 +4,7 @@ import { Menu, PenSquare, Search, X } from "lucide-react";
 import Logo from "../brand/Logo";
 import { isAdmin } from "../../lib/auth";
 import styles from "./Header.module.css";
+import PublishMenu from "../../pages/admin/PublishMenu";
 
 const NAV_LINKS = [
   { label: "Notícias", href: "#ultimas-noticias" },
@@ -31,16 +32,7 @@ export default function Header() {
         </nav>
 
         <div className={styles.actions}>
-          {admin && (
-            <Link
-              to="/admin/news/new"
-              className={styles.postButton}
-              aria-label="Postar novo artigo"
-            >
-              <PenSquare size={16} aria-hidden />
-              <span>Postar Artigo</span>
-            </Link>
-          )}
+          {admin && <PublishMenu></PublishMenu>}
 
           <label className={styles.search}>
             <Search size={16} aria-hidden />
@@ -86,18 +78,6 @@ export default function Header() {
                 </a>
               </li>
             ))}
-            {admin && (
-              <li>
-                <Link
-                  to="/admin/news/new"
-                  onClick={() => setMenuOpen(false)}
-                  className={`${styles.mobileLink} ${styles.mobilePost}`}
-                >
-                  <PenSquare size={17} aria-hidden />
-                  Postar Artigo
-                </Link>
-              </li>
-            )}
           </ul>
         </nav>
       )}
