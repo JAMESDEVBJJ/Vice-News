@@ -10,7 +10,6 @@ import {
   type VehicleTag,
 } from "../data/vehiclesMock";
 import styles from "./Vehicles.module.css";
-import Logo from "../components/brand/Logo";
 import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
 
@@ -25,9 +24,6 @@ export default function Vehicles() {
   const [category, setCategory] = useState<VehicleCategoryId | null>(null);
   const [query, setQuery] = useState("");
   const [activeTags, setActiveTags] = useState<VehicleTag[]>([]);
-
-  // Filtro simples só para os estados da interface ficarem visíveis.
-  // Se preferir só o visual nesta etapa, use `vehicles` direto no grid.
   const filtered = useMemo(() => {
     const term = query.trim().toLowerCase();
 

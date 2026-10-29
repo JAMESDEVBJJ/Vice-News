@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router";
-import { Menu, PenSquare, Search, X } from "lucide-react";
+import { Menu, Search, X } from "lucide-react";
 import Logo from "../brand/Logo";
 import { isAdmin } from "../../lib/auth";
 import styles from "./Header.module.css";

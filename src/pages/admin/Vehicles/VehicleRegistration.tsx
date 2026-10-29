@@ -58,11 +58,6 @@ type VehicleErrors = Partial<
   >
 >;
 
-type Status = {
-  kind: "success";
-  message: string;
-} | null;
-
 function validateVehicle(vehicle: VehicleDraft): VehicleErrors {
   const errors: VehicleErrors = {};
 
@@ -128,7 +123,6 @@ export default function VehicleRegistration({
 }: VehicleRegistrationProps) {
   const [errors, setErrors] = useState<VehicleErrors>({});
   const [showErrors, setShowErrors] = useState(false);
-  const [status, setStatus] = useState<Status>(null);
   const uid = useId();
   const id = (field: string) => `${uid}-${field}`;
 
@@ -141,7 +135,6 @@ export default function VehicleRegistration({
     value: VehicleDraft[K]
   ) {
     setVehicle((prev) => ({ ...prev, [key]: value }));
-    setStatus(null);
   }
 
   function updateStat(key: StatKey, raw: string) {
@@ -152,8 +145,6 @@ export default function VehicleRegistration({
         [key]: clampStat(raw),
       },
     }));
-
-    setStatus(null);
   }
 
   function handleSubmit(e: FormEvent<HTMLFormElement>) {
@@ -165,7 +156,6 @@ export default function VehicleRegistration({
     setShowErrors(true);
 
     if (hasErrors(nextErrors)) {
-      setStatus(null);
       return;
     }
 
@@ -181,11 +171,6 @@ export default function VehicleRegistration({
 
     console.log("Dados do veículo:", payload);
     onSubmit?.(payload);
-
-    setStatus({
-      kind: "success",
-      message: "Validação concluída. Dados prontos para envio à API.",
-    });
   }
 
   function handleReset() {
@@ -194,7 +179,6 @@ export default function VehicleRegistration({
     setFailedUrl(null);
     setErrors({});
     setShowErrors(false);
-    setStatus(null);
   }
 
   function addTag(raw: string) {
