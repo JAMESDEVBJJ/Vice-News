@@ -1,0 +1,21 @@
+.page {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-ink-950, #0a0709);
+}
+
+.main {
+  width: calc(100% - 48px);
+  max-width: 1386px;
+  min-width: 0;
+  margin: 28px auto 48px;
+  box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+  .main {
+    width: calc(100% - 32px);
+    margin: 20px auto 32px;
+  }
+}
