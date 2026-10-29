@@ -13,9 +13,12 @@
   --vr-font-body: var(--font-body, "Inter", system-ui, sans-serif);
 
   width: 100%;
-  max-width: 1200px;
-  margin-inline: auto;
-  padding: 32px 24px 72px;
+  max-width: none;
+  min-width: 0;
+  margin: 0;
+  padding: 0 0 40px;
+  box-sizing: border-box;
+
   color: var(--vr-text);
   font-family: var(--vr-font-body);
   color-scheme: dark;
@@ -27,11 +30,22 @@
   box-sizing: border-box;
 }
 
-.layout {
+.fieldError {
+  margin: 6px 0 0;
+  color: #ff668c;
+  font-size: 0.8rem;
+}
+
+.control[aria-invalid="true"] {
+  border-color: #ff668c;
+}
+s .layout {
   display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
-  gap: 24px;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+  gap: 36px;
   align-items: start;
+  width: 100%;
+  min-width: 0;
 }
 
 .form {

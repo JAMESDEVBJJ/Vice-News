@@ -1,4 +1,5 @@
 import {
+  useEffect,
   useId,
   useState,
   type ChangeEvent,
@@ -50,9 +51,84 @@ const INITIAL_VEHICLE: VehicleDraft = {
 const clampStat = (raw: string) =>
   Math.min(100, Math.max(0, Math.round(Number(raw) || 0)));
 
+type VehicleErrors = Partial<
+  Record<
+    "name" | "manufacturer" | "price" | "category" | "description" | "imageUrl",
+    string
+  >
+>;
+
+type Status = {
+  kind: "success";
+  message: string;
+} | null;
+
+function validateVehicle(vehicle: VehicleDraft): VehicleErrors {
+  const errors: VehicleErrors = {};
+
+  const name = vehicle.name.trim();
+  const manufacturer = vehicle.manufacturer.trim();
+  const price = vehicle.price.trim();
+  const description = vehicle.description.trim();
+  const imageUrl = vehicle.imageUrl.trim();
+
+  if (!name) {
+    errors.name = "Informe o nome do veículo.";
+  } else if (name.length > 100) {
+    errors.name = "O nome deve ter no máximo 100 caracteres.";
+  }
+
+  if (!manufacturer) {
+    errors.manufacturer = "Informe o fabricante ou a marca.";
+  } else if (manufacturer.length > 60) {
+    errors.manufacturer = "Use no máximo 60 caracteres.";
+  }
+
+  if (price !== "") {
+    const numericPrice = Number(price);
+
+    if (
+      !Number.isFinite(numericPrice) ||
+      numericPrice < 0 ||
+      !Number.isInteger(numericPrice)
+    ) {
+      errors.price = "Informe um preço inteiro maior ou igual a zero.";
+    }
+  }
+
+  if (!CATEGORIES.includes(vehicle.category)) {
+    errors.category = "Selecione uma categoria válida.";
+  }
+
+  if (description.length > 300) {
+    errors.description = "A descrição deve ter no máximo 300 caracteres.";
+  }
+
+  if (imageUrl) {
+    try {
+      const parsedUrl = new URL(imageUrl);
+
+      if (parsedUrl.protocol !== "https:" && parsedUrl.protocol !== "http:") {
+        errors.imageUrl = "Utilize uma URL HTTP ou HTTPS.";
+      }
+    } catch {
+      errors.imageUrl = "Informe uma URL de imagem válida.";
+    }
+  }
+
+  return errors;
+}
+
+function hasErrors(errors: VehicleErrors): boolean {
+  return Object.keys(errors).length > 0;
+}
+
 export default function VehicleRegistration({
   onSubmit,
 }: VehicleRegistrationProps) {
+  const [errors, setErrors] = useState<VehicleErrors>({});
+  const [showErrors, setShowErrors] = useState(false);
+  const [status, setStatus] = useState<Status>(null);
   const uid = useId();
   const id = (field: string) => `${uid}-${field}`;
 
@@ -65,13 +141,60 @@ export default function VehicleRegistration({
     value: VehicleDraft[K]
   ) {
     setVehicle((prev) => ({ ...prev, [key]: value }));
+    setStatus(null);
   }
 
   function updateStat(key: StatKey, raw: string) {
     setVehicle((prev) => ({
       ...prev,
-      stats: { ...prev.stats, [key]: clampStat(raw) },
+      stats: {
+        ...prev.stats,
+        [key]: clampStat(raw),
+      },
     }));
+
+    setStatus(null);
+  }
+
+  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+
+    const nextErrors = validateVehicle(vehicle);
+
+    setErrors(nextErrors);
+    setShowErrors(true);
+
+    if (hasErrors(nextErrors)) {
+      setStatus(null);
+      return;
+    }
+
+    const payload: VehicleDraft = {
+      ...vehicle,
+      name: vehicle.name.trim(),
+      manufacturer: vehicle.manufacturer.trim(),
+      price: vehicle.price.trim(),
+      tags: vehicle.tags.map((tag) => tag.trim()).filter(Boolean),
+      description: vehicle.description.trim(),
+      imageUrl: vehicle.imageUrl.trim(),
+    };
+
+    console.log("Dados do veículo:", payload);
+    onSubmit?.(payload);
+
+    setStatus({
+      kind: "success",
+      message: "Validação concluída. Dados prontos para envio à API.",
+    });
+  }
+
+  function handleReset() {
+    setVehicle(INITIAL_VEHICLE);
+    setTagInput("");
+    setFailedUrl(null);
+    setErrors({});
+    setShowErrors(false);
+    setStatus(null);
   }
 
   function addTag(raw: string) {
@@ -100,23 +223,6 @@ export default function VehicleRegistration({
     }
   }
 
-  function handleSubmit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    onSubmit?.({
-      ...vehicle,
-      name: vehicle.name.trim(),
-      manufacturer: vehicle.manufacturer.trim(),
-      description: vehicle.description.trim(),
-      imageUrl: vehicle.imageUrl.trim(),
-    });
-  }
-
-  function handleReset() {
-    setVehicle(INITIAL_VEHICLE);
-    setTagInput("");
-    setFailedUrl(null);
-  }
-
   const imageUrl = vehicle.imageUrl.trim();
 
   const hasImage = imageUrl !== "" && failedUrl !== imageUrl;
@@ -139,10 +245,21 @@ export default function VehicleRegistration({
   const vehicleMaker = vehicle.manufacturer.trim();
   const vehicleDescription = vehicle.description.trim();
 
+  useEffect(() => {
+    if (!showErrors) return;
+
+    setErrors(validateVehicle(vehicle));
+  }, [vehicle, showErrors]);
+
   return (
     <div className={styles.root}>
       <div className={styles.layout}>
-        <form className={styles.form} onSubmit={handleSubmit}>
+        <form
+          className={styles.form}
+          id="vehicle-registration-form"
+          onSubmit={handleSubmit}
+          noValidate
+        >
           <section className={styles.panel} aria-labelledby={id("general")}>
             <h2 id={id("general")} className={styles.panelTitle}>
               Registros gerais
@@ -161,10 +278,23 @@ export default function VehicleRegistration({
                   className={styles.control}
                   type="text"
                   required
+                  maxLength={100}
                   placeholder="Pfister Comet S2"
                   value={vehicle.name}
                   onChange={(e) => update("name", e.target.value)}
+                  aria-invalid={Boolean(errors.name)}
+                  aria-describedby={errors.name ? id("name-error") : undefined}
                 />
+
+                {errors.name && (
+                  <p
+                    id={id("name-error")}
+                    className={styles.fieldError}
+                    role="alert"
+                  >
+                    {errors.name}
+                  </p>
+                )}
               </div>
 
               <div className={styles.field}>
@@ -182,7 +312,21 @@ export default function VehicleRegistration({
                   placeholder="Pfister"
                   value={vehicle.manufacturer}
                   onChange={(e) => update("manufacturer", e.target.value)}
+                  aria-invalid={Boolean(errors.manufacturer)}
+                  aria-describedby={
+                    errors.name ? id("manufacture-error") : undefined
+                  }
                 />
+
+                {errors.manufacturer && (
+                  <p
+                    id={id("manufacture-error")}
+                    className={styles.fieldError}
+                    role="alert"
+                  >
+                    {errors.manufacturer}
+                  </p>
+                )}
               </div>
 
               <div className={styles.field}>
