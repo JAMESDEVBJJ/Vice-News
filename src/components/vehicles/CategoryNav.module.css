@@ -1,0 +1,169 @@
+.list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+@media (min-width: 640px) {
+  .list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .list {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 1rem;
+  }
+}
+
+.list > li {
+  display: flex;
+}
+
+.tile {
+  position: relative;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+  padding: 0;
+  border-radius: 0.875rem;
+  border: 1px solid var(--color-ink-800);
+  background: var(--color-ink-900, #130e19);
+  text-align: left;
+  color: inherit;
+  cursor: pointer;
+  transition: transform 200ms ease, border-color 200ms ease,
+    box-shadow 200ms ease;
+}
+
+/* Barra que indica a categoria selecionada */
+.tile::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    var(--color-neon-pink),
+    var(--color-neon-purple, #9d5cff)
+  );
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 250ms ease;
+}
+
+.tile:hover {
+  transform: translateY(-3px);
+  border-color: var(--color-ink-700);
+}
+
+.tile:focus-visible {
+  outline: 2px solid var(--color-neon-pink);
+  outline-offset: 3px;
+}
+
+.tileActive,
+.tileActive:hover {
+  border-color: color-mix(in srgb, var(--color-neon-pink) 60%, transparent);
+  box-shadow: 0 16px 36px -24px color-mix(in srgb, var(--color-neon-pink) 70%, transparent);
+}
+
+.tileActive::after {
+  transform: scaleX(1);
+}
+
+.visual {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background: radial-gradient(
+      90% 120% at 50% 130%,
+      color-mix(in srgb, var(--color-neon-purple, #9d5cff) 22%, transparent),
+      transparent 65%
+    ),
+    var(--color-ink-950);
+}
+
+.tileActive .visual {
+  background: radial-gradient(
+      90% 120% at 50% 130%,
+      color-mix(in srgb, var(--color-neon-pink) 30%, transparent),
+      transparent 65%
+    ),
+    var(--color-ink-950);
+}
+
+.cover {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 500ms ease;
+}
+
+.icon {
+  color: var(--color-fog-500);
+  transition: color 200ms ease, transform 300ms ease;
+}
+
+.tile:hover .icon {
+  color: #fff;
+  transform: scale(1.08);
+}
+
+.tile:hover .cover {
+  transform: scale(1.05);
+}
+
+.tileActive .icon,
+.tileActive:hover .icon {
+  color: var(--color-neon-pink);
+}
+
+.info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  padding: 0.75rem 0.875rem 0.875rem;
+}
+
+.label {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: #fff;
+}
+
+.count {
+  font-size: 0.72rem;
+  color: var(--color-fog-500);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tile,
+  .tile::after,
+  .cover,
+  .icon {
+    transition: none;
+  }
+
+  .tile:hover,
+  .tile:hover .icon,
+  .tile:hover .cover {
+    transform: none;
+  }
+}

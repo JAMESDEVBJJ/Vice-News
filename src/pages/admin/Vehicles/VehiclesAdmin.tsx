@@ -5,7 +5,7 @@ import Footer from "../../../components/layout/Footer";
 import { Link } from "react-router-dom";
 import { ArrowLeft, CarFront } from "lucide-react";
 
-export default function Vehicles() {
+export default function VehiclesAdmin() {
   return (
     <div className={pageStyles.page}>
       <header className={headerStyles.topbar}>
