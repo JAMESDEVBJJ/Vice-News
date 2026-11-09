@@ -9,7 +9,16 @@ import {
 } from "react";
 import { CheckCircle2, ChevronDown, ImageOff, X } from "lucide-react";
 import styles from "./VehicleRegistration.module.css";
+import {
+  ApiError,
+  getManufacturers,
+  getVehicleCategories,
+  type ManufacturerResponse,
+  type VehicleCategoryResponse,
+} from "./vehicleLookupsApi";
 
+// Lista fixa mantida apenas por compatibilidade com possíveis imports externos.
+// O formulário agora carrega as categorias de GET /api/vehicle-categories.
 export const CATEGORIES = ["Carros", "Motos", "Barcos", "Aeronaves"] as const;
 export type VehicleCategory = (typeof CATEGORIES)[number];
 
@@ -24,9 +33,9 @@ type StatKey = (typeof STATS)[number]["key"];
 
 export interface VehicleDraft {
   name: string;
-  manufacturer: string;
+  manufacturerId: number | null;
   price: string;
-  category: VehicleCategory;
+  categoryId: number | null;
   tags: string[];
   description: string;
   imageUrl: string;
@@ -39,9 +48,9 @@ interface VehicleRegistrationProps {
 
 const INITIAL_VEHICLE: VehicleDraft = {
   name: "",
-  manufacturer: "",
+  manufacturerId: null,
   price: "",
-  category: "Carros",
+  categoryId: null,
   tags: [],
   description: "",
   imageUrl: "",
@@ -51,18 +60,36 @@ const INITIAL_VEHICLE: VehicleDraft = {
 const clampStat = (raw: string) =>
   Math.min(100, Math.max(0, Math.round(Number(raw) || 0)));
 
+const parseOptionId = (raw: string): number | null =>
+  raw === "" ? null : Number(raw);
+
+const describedBy = (...ids: Array<string | false | null | undefined>) =>
+  ids.filter(Boolean).join(" ") || undefined;
+
 type VehicleErrors = Partial<
   Record<
-    "name" | "manufacturer" | "price" | "category" | "description" | "imageUrl",
+    | "name"
+    | "manufacturerId"
+    | "price"
+    | "categoryId"
+    | "description"
+    | "imageUrl",
     string
   >
 >;
 
-function validateVehicle(vehicle: VehicleDraft): VehicleErrors {
+interface VehicleOptions {
+  manufacturers: ManufacturerResponse[];
+  categories: VehicleCategoryResponse[];
+}
+
+function validateVehicle(
+  vehicle: VehicleDraft,
+  options: VehicleOptions
+): VehicleErrors {
   const errors: VehicleErrors = {};
 
   const name = vehicle.name.trim();
-  const manufacturer = vehicle.manufacturer.trim();
   const price = vehicle.price.trim();
   const description = vehicle.description.trim();
   const imageUrl = vehicle.imageUrl.trim();
@@ -73,10 +100,12 @@ function validateVehicle(vehicle: VehicleDraft): VehicleErrors {
     errors.name = "O nome deve ter no máximo 100 caracteres.";
   }
 
-  if (!manufacturer) {
-    errors.manufacturer = "Informe o fabricante ou a marca.";
-  } else if (manufacturer.length > 60) {
-    errors.manufacturer = "Use no máximo 60 caracteres.";
+  if (vehicle.manufacturerId === null) {
+    errors.manufacturerId = "Selecione o fabricante ou a marca.";
+  } else if (
+    !options.manufacturers.some((m) => m.id === vehicle.manufacturerId)
+  ) {
+    errors.manufacturerId = "Selecione um fabricante válido.";
   }
 
   if (price !== "") {
@@ -91,8 +120,10 @@ function validateVehicle(vehicle: VehicleDraft): VehicleErrors {
     }
   }
 
-  if (!CATEGORIES.includes(vehicle.category)) {
-    errors.category = "Selecione uma categoria válida.";
+  if (vehicle.categoryId === null) {
+    errors.categoryId = "Selecione a categoria principal.";
+  } else if (!options.categories.some((c) => c.id === vehicle.categoryId)) {
+    errors.categoryId = "Selecione uma categoria válida.";
   }
 
   if (description.length > 300) {
@@ -118,6 +149,70 @@ function hasErrors(errors: VehicleErrors): boolean {
   return Object.keys(errors).length > 0;
 }
 
+type LookupStatus = "loading" | "success" | "error";
+
+interface LookupState<T> {
+  status: LookupStatus;
+  items: T[];
+  error: string | null;
+}
+
+function describeLookupError(error: unknown, resource: string): string {
+  if (error instanceof ApiError) {
+    return `Não foi possível carregar ${resource}. ${error.message}`;
+  }
+
+  return `Não foi possível carregar ${resource}. Verifique se a API está em execução.`;
+}
+
+function useLookupList<T>(
+  load: (signal: AbortSignal) => Promise<T[]>,
+  resource: string
+) {
+  const [state, setState] = useState<LookupState<T>>({
+    status: "loading",
+    items: [],
+    error: null,
+  });
+  const [attempt, setAttempt] = useState(0);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    load(controller.signal)
+      .then((items) => setState({ status: "success", items, error: null }))
+      .catch((error: unknown) => {
+        if (controller.signal.aborted) return;
+
+        setState({
+          status: "error",
+          items: [],
+          error: describeLookupError(error, resource),
+        });
+      });
+
+    return () => controller.abort();
+  }, [load, resource, attempt]);
+
+  function retry() {
+    setState({ status: "loading", items: [], error: null });
+    setAttempt((n) => n + 1);
+  }
+
+  return { ...state, retry };
+}
+
+function lookupPlaceholder(
+  status: LookupStatus,
+  isEmpty: boolean,
+  labels: { loading: string; error: string; empty: string; idle: string }
+): string {
+  if (status === "loading") return labels.loading;
+  if (status === "error") return labels.error;
+  if (isEmpty) return labels.empty;
+  return labels.idle;
+}
+
 export default function VehicleRegistration({
   onSubmit,
 }: VehicleRegistrationProps) {
@@ -129,6 +224,12 @@ export default function VehicleRegistration({
   const [vehicle, setVehicle] = useState<VehicleDraft>(INITIAL_VEHICLE);
   const [tagInput, setTagInput] = useState("");
   const [failedUrl, setFailedUrl] = useState<string | null>(null);
+
+  const manufacturers = useLookupList(getManufacturers, "os fabricantess");
+  const categories = useLookupList(getVehicleCategories, "as categorias");
+
+  const manufacturerItems = manufacturers.items;
+  const categoryItems = categories.items;
 
   function update<K extends keyof VehicleDraft>(
     key: K,
@@ -150,7 +251,10 @@ export default function VehicleRegistration({
   function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
-    const nextErrors = validateVehicle(vehicle);
+    const nextErrors = validateVehicle(vehicle, {
+      manufacturers: manufacturerItems,
+      categories: categoryItems,
+    });
 
     setErrors(nextErrors);
     setShowErrors(true);
@@ -162,7 +266,6 @@ export default function VehicleRegistration({
     const payload: VehicleDraft = {
       ...vehicle,
       name: vehicle.name.trim(),
-      manufacturer: vehicle.manufacturer.trim(),
       price: vehicle.price.trim(),
       tags: vehicle.tags.map((tag) => tag.trim()).filter(Boolean),
       description: vehicle.description.trim(),
@@ -226,14 +329,39 @@ export default function VehicleRegistration({
       : null;
 
   const vehicleName = vehicle.name.trim();
-  const vehicleMaker = vehicle.manufacturer.trim();
   const vehicleDescription = vehicle.description.trim();
+
+  const vehicleMaker =
+    manufacturerItems.find((m) => m.id === vehicle.manufacturerId)?.name ?? "";
+  const vehicleCategory =
+    categoryItems.find((c) => c.id === vehicle.categoryId)?.name ?? "";
+
+  const manufacturersUnavailable =
+    manufacturers.status !== "success" || manufacturerItems.length === 0;
+  const categoriesUnavailable =
+    categories.status !== "success" || categoryItems.length === 0;
+
+  const manufacturerStatusId =
+    manufacturers.status === "error" ||
+    (manufacturers.status === "success" && manufacturerItems.length === 0)
+      ? id("manufacturer-status")
+      : undefined;
+  const categoryStatusId =
+    categories.status === "error" ||
+    (categories.status === "success" && categoryItems.length === 0)
+      ? id("category-status")
+      : undefined;
 
   useEffect(() => {
     if (!showErrors) return;
 
-    setErrors(validateVehicle(vehicle));
-  }, [vehicle, showErrors]);
+    setErrors(
+      validateVehicle(vehicle, {
+        manufacturers: manufacturerItems,
+        categories: categoryItems,
+      })
+    );
+  }, [vehicle, showErrors, manufacturerItems, categoryItems]);
 
   return (
     <div className={styles.root}>
@@ -282,33 +410,90 @@ export default function VehicleRegistration({
               </div>
 
               <div className={styles.field}>
-                <label htmlFor={id("maker")} className={styles.label}>
+                <label htmlFor={id("manufacturer")} className={styles.label}>
                   Fabricante / Marca
                   <span className={styles.required} aria-hidden>
                     *
                   </span>
                 </label>
-                <input
-                  id={id("maker")}
-                  className={styles.control}
-                  type="text"
-                  required
-                  placeholder="Pfister"
-                  value={vehicle.manufacturer}
-                  onChange={(e) => update("manufacturer", e.target.value)}
-                  aria-invalid={Boolean(errors.manufacturer)}
-                  aria-describedby={
-                    errors.name ? id("manufacture-error") : undefined
-                  }
-                />
+                <div className={styles.selectWrap}>
+                  <select
+                    id={id("manufacturer")}
+                    className={`${styles.control} ${styles.select} ${
+                      vehicle.manufacturerId === null ? styles.selectEmpty : ""
+                    }`}
+                    required
+                    disabled={manufacturersUnavailable}
+                    value={vehicle.manufacturerId ?? ""}
+                    onChange={(e: ChangeEvent<HTMLSelectElement>) =>
+                      update("manufacturerId", parseOptionId(e.target.value))
+                    }
+                    aria-busy={manufacturers.status === "loading"}
+                    aria-invalid={Boolean(errors.manufacturerId)}
+                    aria-describedby={describedBy(
+                      manufacturerStatusId,
+                      errors.manufacturerId && id("manufacturer-error")
+                    )}
+                  >
+                    <option value="">
+                      {lookupPlaceholder(
+                        manufacturers.status,
+                        manufacturerItems.length === 0,
+                        {
+                          loading: "Carregando fabricantes…",
+                          error: "Fabricantes indisponíveis",
+                          empty: "Nenhum fabricante cadastrado",
+                          idle: "Selecione um fabricante",
+                        }
+                      )}
+                    </option>
+                    {manufacturerItems.map((manufacturer) => (
+                      <option key={manufacturer.id} value={manufacturer.id}>
+                        {manufacturer.name}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown
+                    size={16}
+                    className={styles.selectIcon}
+                    aria-hidden
+                  />
+                </div>
 
-                {errors.manufacturer && (
+                {manufacturers.status === "error" && (
                   <p
-                    id={id("manufacture-error")}
+                    id={id("manufacturer-status")}
                     className={styles.fieldError}
                     role="alert"
                   >
-                    {errors.manufacturer}
+                    {manufacturers.error}{" "}
+                    <button
+                      type="button"
+                      className={styles.retry}
+                      onClick={manufacturers.retry}
+                    >
+                      Tentar novamente
+                    </button>
+                  </p>
+                )}
+
+                {manufacturers.status === "success" &&
+                  manufacturerItems.length === 0 && (
+                    <p
+                      id={id("manufacturer-status")}
+                      className={styles.fieldHint}
+                    >
+                      Cadastre um fabricante na API para continuar.
+                    </p>
+                  )}
+
+                {errors.manufacturerId && (
+                  <p
+                    id={id("manufacturer-error")}
+                    className={styles.fieldError}
+                    role="alert"
+                  >
+                    {errors.manufacturerId}
                   </p>
                 )}
               </div>
@@ -346,19 +531,44 @@ export default function VehicleRegistration({
               <div className={styles.field}>
                 <label htmlFor={id("category")} className={styles.label}>
                   Categoria principal
+                  <span className={styles.required} aria-hidden>
+                    *
+                  </span>
                 </label>
                 <div className={styles.selectWrap}>
                   <select
                     id={id("category")}
-                    className={`${styles.control} ${styles.select}`}
-                    value={vehicle.category}
+                    className={`${styles.control} ${styles.select} ${
+                      vehicle.categoryId === null ? styles.selectEmpty : ""
+                    }`}
+                    required
+                    disabled={categoriesUnavailable}
+                    value={vehicle.categoryId ?? ""}
                     onChange={(e: ChangeEvent<HTMLSelectElement>) =>
-                      update("category", e.target.value as VehicleCategory)
+                      update("categoryId", parseOptionId(e.target.value))
                     }
+                    aria-busy={categories.status === "loading"}
+                    aria-invalid={Boolean(errors.categoryId)}
+                    aria-describedby={describedBy(
+                      categoryStatusId,
+                      errors.categoryId && id("category-error")
+                    )}
                   >
-                    {CATEGORIES.map((category) => (
-                      <option key={category} value={category}>
-                        {category}
+                    <option value="">
+                      {lookupPlaceholder(
+                        categories.status,
+                        categoryItems.length === 0,
+                        {
+                          loading: "Carregando categorias…",
+                          error: "Categorias indisponíveis",
+                          empty: "Nenhuma categoria cadastrada",
+                          idle: "Selecione uma categoria",
+                        }
+                      )}
+                    </option>
+                    {categoryItems.map((category) => (
+                      <option key={category.id} value={category.id}>
+                        {category.name}
                       </option>
                     ))}
                   </select>
@@ -368,6 +578,40 @@ export default function VehicleRegistration({
                     aria-hidden
                   />
                 </div>
+
+                {categories.status === "error" && (
+                  <p
+                    id={id("category-status")}
+                    className={styles.fieldError}
+                    role="alert"
+                  >
+                    {categories.error}{" "}
+                    <button
+                      type="button"
+                      className={styles.retry}
+                      onClick={categories.retry}
+                    >
+                      Tentar novamente
+                    </button>
+                  </p>
+                )}
+
+                {categories.status === "success" &&
+                  categoryItems.length === 0 && (
+                    <p id={id("category-status")} className={styles.fieldHint}>
+                      Cadastre uma categoria na API para continuar.
+                    </p>
+                  )}
+
+                {errors.categoryId && (
+                  <p
+                    id={id("category-error")}
+                    className={styles.fieldError}
+                    role="alert"
+                  >
+                    {errors.categoryId}
+                  </p>
+                )}
               </div>
 
               <div className={`${styles.field} ${styles.full}`}>
@@ -550,7 +794,9 @@ export default function VehicleRegistration({
                   Sem imagem
                 </span>
               )}
-              <span className={styles.badge}>{vehicle.category}</span>
+              {vehicleCategory && (
+                <span className={styles.badge}>{vehicleCategory}</span>
+              )}
             </div>
 
             <div className={styles.cardBody}>
