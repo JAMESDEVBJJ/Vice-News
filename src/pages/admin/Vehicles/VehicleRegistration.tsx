@@ -15,7 +15,7 @@ import {
   getVehicleCategories,
   type ManufacturerResponse,
   type VehicleCategoryResponse,
-} from "./vehicleLookupsApi";
+} from "../../../api/vehicleLookupsApi";
 
 // Lista fixa mantida apenas por compatibilidade com possíveis imports externos.
 // O formulário agora carrega as categorias de GET /api/vehicle-categories.
