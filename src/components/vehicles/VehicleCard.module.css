@@ -96,24 +96,6 @@
   color: var(--color-fog-300, #cfc8d8);
 }
 
-.pillStatus {
-  top: 0.75rem;
-  left: 0.75rem;
-}
-
-.pillConfirmed {
-  color: var(--color-neon-pink);
-  border-color: color-mix(in srgb, var(--color-neon-pink) 45%, transparent);
-}
-
-.pillConfirmed::before {
-  content: "";
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: currentColor;
-}
-
 .pillCategory {
   bottom: 0.75rem;
   left: 0.75rem;
@@ -137,11 +119,6 @@
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--color-neon-purple, #9d5cff);
-}
-
-.brandPending {
-  letter-spacing: 0.12em;
-  color: var(--color-fog-500);
 }
 
 .name {
@@ -273,19 +250,6 @@
   font-weight: 700;
   letter-spacing: 0.02em;
   color: #fff;
-}
-
-.pricePending {
-  font-size: 0.8rem;
-  color: var(--color-fog-500);
-}
-
-.seats {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  font-size: 0.72rem;
-  color: var(--color-fog-500);
 }
 
 .details {

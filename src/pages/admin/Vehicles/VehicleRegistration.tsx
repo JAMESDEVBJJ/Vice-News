@@ -1,6 +1,7 @@
 import {
-  useEffect,
   useId,
+  useMemo,
+  useRef,
   useState,
   type ChangeEvent,
   type CSSProperties,
@@ -10,12 +11,24 @@ import {
 import { CheckCircle2, ChevronDown, ImageOff, X } from "lucide-react";
 import styles from "./VehicleRegistration.module.css";
 import {
-  ApiError,
   getManufacturers,
   getVehicleCategories,
   type ManufacturerResponse,
   type VehicleCategoryResponse,
 } from "../../../api/vehicleLookupsApi";
+import {
+  createVehicle,
+  type CreateVehicleRequest,
+  type VehicleResponse,
+} from "../../../api/vehiclesApi";
+import {
+  ApiError,
+  getErrorMessage,
+  type FieldErrors,
+} from "../../../api/httpClient";
+import { useApiResource } from "../../../hooks/useApiResource";
+import { slugify } from "../../../lib/slug";
+import { toast } from "../../../lib/toast";
 
 // Lista fixa mantida apenas por compatibilidade com possíveis imports externos.
 // O formulário agora carrega as categorias de GET /api/vehicle-categories.
@@ -43,7 +56,10 @@ export interface VehicleDraft {
 }
 
 interface VehicleRegistrationProps {
-  onSubmit?: (vehicle: VehicleDraft) => void;
+  /** Chamado após o POST /api/vehicles retornar 201, com o veículo criado. */
+  onCreated?: (vehicle: VehicleResponse) => void;
+  /** Informa o início e o fim do envio (ex.: para desabilitar o botão do topo). */
+  onSubmittingChange?: (submitting: boolean) => void;
 }
 
 const INITIAL_VEHICLE: VehicleDraft = {
@@ -56,6 +72,10 @@ const INITIAL_VEHICLE: VehicleDraft = {
   imageUrl: "",
   stats: { topSpeed: 50, acceleration: 50, braking: 50, handling: 50 },
 };
+
+// Limites do CreateVehicleRequestDto e da VehicleTagConfiguration no backend.
+const DESCRIPTION_MAX_LENGTH = 300;
+const TAG_MAX_LENGTH = 100;
 
 const clampStat = (raw: string) =>
   Math.min(100, Math.max(0, Math.round(Number(raw) || 0)));
@@ -73,7 +93,9 @@ type VehicleErrors = Partial<
     | "price"
     | "categoryId"
     | "description"
-    | "imageUrl",
+    | "imageUrl"
+    | "tags"
+    | "stats",
     string
   >
 >;
@@ -98,6 +120,8 @@ function validateVehicle(
     errors.name = "Informe o nome do veículo.";
   } else if (name.length > 100) {
     errors.name = "O nome deve ter no máximo 100 caracteres.";
+  } else if (!slugify(name)) {
+    errors.name = "O nome deve conter letras ou números.";
   }
 
   if (vehicle.manufacturerId === null) {
@@ -108,13 +132,15 @@ function validateVehicle(
     errors.manufacturerId = "Selecione um fabricante válido.";
   }
 
-  if (price !== "") {
+  if (price === "") {
+    errors.price = "Informe o preço em GTA$.";
+  } else {
     const numericPrice = Number(price);
 
     if (
       !Number.isFinite(numericPrice) ||
       numericPrice < 0 ||
-      !Number.isInteger(numericPrice)
+      !Number.isSafeInteger(numericPrice)
     ) {
       errors.price = "Informe um preço inteiro maior ou igual a zero.";
     }
@@ -126,8 +152,21 @@ function validateVehicle(
     errors.categoryId = "Selecione uma categoria válida.";
   }
 
-  if (description.length > 300) {
-    errors.description = "A descrição deve ter no máximo 300 caracteres.";
+  if (!description) {
+    errors.description = "Informe uma breve descrição do veículo.";
+  } else if (description.length > DESCRIPTION_MAX_LENGTH) {
+    errors.description = `A descrição deve ter no máximo ${DESCRIPTION_MAX_LENGTH} caracteres.`;
+  }
+
+  const invalidTag = vehicle.tags.find(
+    (tag) => tag.length > TAG_MAX_LENGTH || !slugify(tag)
+  );
+
+  if (invalidTag !== undefined) {
+    errors.tags =
+      invalidTag.length > TAG_MAX_LENGTH
+        ? `Cada tag deve ter no máximo ${TAG_MAX_LENGTH} caracteres.`
+        : `A tag "${invalidTag}" deve conter letras ou números.`;
   }
 
   if (imageUrl) {
@@ -149,16 +188,61 @@ function hasErrors(errors: VehicleErrors): boolean {
   return Object.keys(errors).length > 0;
 }
 
-type LookupStatus = "loading" | "success" | "error";
-
-interface LookupState<T> {
-  status: LookupStatus;
-  items: T[];
-  error: string | null;
+/** Monta o CreateVehicleRequestDto a partir do rascunho já validado. */
+function toCreateVehicleRequest(vehicle: VehicleDraft): CreateVehicleRequest {
+  return {
+    name: vehicle.name.trim(),
+    manufacturerId: vehicle.manufacturerId as number,
+    categoryId: vehicle.categoryId as number,
+    priceGta: Number(vehicle.price.trim()),
+    description: vehicle.description.trim(),
+    maxSpeed: vehicle.stats.topSpeed,
+    acceleration: vehicle.stats.acceleration,
+    braking: vehicle.stats.braking,
+    handling: vehicle.stats.handling,
+    imageUrl: vehicle.imageUrl.trim() || null,
+    tags: vehicle.tags.map((tag) => tag.trim()).filter(Boolean),
+  };
 }
 
+/** Campos do CreateVehicleRequestDto (chaves já em camelCase) → campos do formulário. */
+const SERVER_FIELD_TO_FORM_FIELD: Record<string, keyof VehicleErrors> = {
+  name: "name",
+  manufacturerId: "manufacturerId",
+  categoryId: "categoryId",
+  priceGta: "price",
+  description: "description",
+  imageUrl: "imageUrl",
+  tags: "tags",
+  maxSpeed: "stats",
+  acceleration: "stats",
+  braking: "stats",
+  handling: "stats",
+};
+
+/** Separa os erros de validação da API entre campos do formulário e mensagens avulsas. */
+function mapServerFieldErrors(fieldErrors: FieldErrors) {
+  const errors: VehicleErrors = {};
+  const unmatched: string[] = [];
+
+  for (const [key, messages] of Object.entries(fieldErrors)) {
+    const field = SERVER_FIELD_TO_FORM_FIELD[key];
+
+    if (!field) {
+      unmatched.push(...messages);
+      continue;
+    }
+
+    errors[field] = [errors[field], ...messages].filter(Boolean).join(" ");
+  }
+
+  return { errors, unmatched };
+}
+
+type LookupStatus = "loading" | "success" | "error";
+
 function describeLookupError(error: unknown, resource: string): string {
-  if (error instanceof ApiError) {
+  if (error instanceof ApiError && error.kind !== "network") {
     return `Não foi possível carregar ${resource}. ${error.message}`;
   }
 
@@ -169,37 +253,15 @@ function useLookupList<T>(
   load: (signal: AbortSignal) => Promise<T[]>,
   resource: string
 ) {
-  const [state, setState] = useState<LookupState<T>>({
-    status: "loading",
-    items: [],
-    error: null,
-  });
-  const [attempt, setAttempt] = useState(0);
+  const { status, data, error, retry } = useApiResource(load);
+  const items = useMemo(() => data ?? [], [data]);
 
-  useEffect(() => {
-    const controller = new AbortController();
-
-    load(controller.signal)
-      .then((items) => setState({ status: "success", items, error: null }))
-      .catch((error: unknown) => {
-        if (controller.signal.aborted) return;
-
-        setState({
-          status: "error",
-          items: [],
-          error: describeLookupError(error, resource),
-        });
-      });
-
-    return () => controller.abort();
-  }, [load, resource, attempt]);
-
-  function retry() {
-    setState({ status: "loading", items: [], error: null });
-    setAttempt((n) => n + 1);
-  }
-
-  return { ...state, retry };
+  return {
+    status,
+    items,
+    error: status === "error" ? describeLookupError(error, resource) : null,
+    retry,
+  };
 }
 
 function lookupPlaceholder(
@@ -214,10 +276,14 @@ function lookupPlaceholder(
 }
 
 export default function VehicleRegistration({
-  onSubmit,
+  onCreated,
+  onSubmittingChange,
 }: VehicleRegistrationProps) {
-  const [errors, setErrors] = useState<VehicleErrors>({});
   const [showErrors, setShowErrors] = useState(false);
+  const [serverErrors, setServerErrors] = useState<VehicleErrors>({});
+  const [submitting, setSubmitting] = useState(false);
+  // Trava síncrona: evita dois envios antes de o estado "submitting" renderizar.
+  const submittingRef = useRef(false);
   const uid = useId();
   const id = (field: string) => `${uid}-${field}`;
 
@@ -225,17 +291,35 @@ export default function VehicleRegistration({
   const [tagInput, setTagInput] = useState("");
   const [failedUrl, setFailedUrl] = useState<string | null>(null);
 
-  const manufacturers = useLookupList(getManufacturers, "os fabricantess");
+  const manufacturers = useLookupList(getManufacturers, "os fabricantes");
   const categories = useLookupList(getVehicleCategories, "as categorias");
 
   const manufacturerItems = manufacturers.items;
   const categoryItems = categories.items;
+
+  // Erros do cliente são derivados do rascunho; os da API valem até a próxima edição.
+  const errors: VehicleErrors = {
+    ...(showErrors
+      ? validateVehicle(vehicle, {
+          manufacturers: manufacturerItems,
+          categories: categoryItems,
+        })
+      : {}),
+    ...serverErrors,
+  };
+
+  function clearServerErrors() {
+    setServerErrors((current) =>
+      Object.keys(current).length > 0 ? {} : current
+    );
+  }
 
   function update<K extends keyof VehicleDraft>(
     key: K,
     value: VehicleDraft[K]
   ) {
     setVehicle((prev) => ({ ...prev, [key]: value }));
+    clearServerErrors();
   }
 
   function updateStat(key: StatKey, raw: string) {
@@ -246,50 +330,91 @@ export default function VehicleRegistration({
         [key]: clampStat(raw),
       },
     }));
+    clearServerErrors();
   }
 
-  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  function setSubmittingState(value: boolean) {
+    submittingRef.current = value;
+    setSubmitting(value);
+    onSubmittingChange?.(value);
+  }
+
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+
+    if (submittingRef.current) return;
 
     const nextErrors = validateVehicle(vehicle, {
       manufacturers: manufacturerItems,
       categories: categoryItems,
     });
 
-    setErrors(nextErrors);
     setShowErrors(true);
+    setServerErrors({});
 
     if (hasErrors(nextErrors)) {
       return;
     }
 
-    const payload: VehicleDraft = {
-      ...vehicle,
-      name: vehicle.name.trim(),
-      price: vehicle.price.trim(),
-      tags: vehicle.tags.map((tag) => tag.trim()).filter(Boolean),
-      description: vehicle.description.trim(),
-      imageUrl: vehicle.imageUrl.trim(),
-    };
+    setSubmittingState(true);
 
-    console.log("Dados do veículo:", payload);
-    onSubmit?.(payload);
+    try {
+      const created = await createVehicle(toCreateVehicleRequest(vehicle));
+      handleReset();
+      onCreated?.(created);
+    } catch (error) {
+      handleSubmitError(error);
+    } finally {
+      setSubmittingState(false);
+    }
+  }
+
+  function handleSubmitError(error: unknown) {
+    if (!(error instanceof ApiError)) {
+      toast.error("Não foi possível cadastrar o veículo", getErrorMessage(error));
+      return;
+    }
+
+    switch (error.kind) {
+      case "validation": {
+        const { errors: fieldErrors, unmatched } = mapServerFieldErrors(
+          error.fieldErrors
+        );
+        setServerErrors(fieldErrors);
+        toast.error(
+          "Revise os dados do veículo",
+          unmatched.length > 0 ? unmatched.join(" ") : error.message
+        );
+        break;
+      }
+      case "not-found":
+        // Fabricante ou categoria removidos: recarrega as opções dos selects.
+        toast.error("Registro não encontrado", error.message);
+        manufacturers.retry();
+        categories.retry();
+        break;
+      case "conflict":
+        toast.error("Conflito ao salvar o veículo", error.message);
+        break;
+      default:
+        toast.error("Não foi possível cadastrar o veículo", error.message);
+    }
   }
 
   function handleReset() {
     setVehicle(INITIAL_VEHICLE);
     setTagInput("");
     setFailedUrl(null);
-    setErrors({});
     setShowErrors(false);
+    setServerErrors({});
   }
 
   function addTag(raw: string) {
-    const tag = raw.replace(/,/g, "").trim();
+    const tag = raw.replace(/,/g, "").trim().replace(/\s+/g, " ");
     if (!tag) return;
-    const exists = vehicle.tags.some(
-      (t) => t.toLowerCase() === tag.toLowerCase()
-    );
+    // Mesma regra da API: "Tunável", "tunavel" e "TUNAVEL" são a mesma tag.
+    const slug = slugify(tag);
+    const exists = vehicle.tags.some((t) => slugify(t) === slug);
     if (!exists) update("tags", [...vehicle.tags, tag]);
     setTagInput("");
   }
@@ -352,17 +477,6 @@ export default function VehicleRegistration({
       ? id("category-status")
       : undefined;
 
-  useEffect(() => {
-    if (!showErrors) return;
-
-    setErrors(
-      validateVehicle(vehicle, {
-        manufacturers: manufacturerItems,
-        categories: categoryItems,
-      })
-    );
-  }, [vehicle, showErrors, manufacturerItems, categoryItems]);
-
   return (
     <div className={styles.root}>
       <div className={styles.layout}>
@@ -371,6 +485,7 @@ export default function VehicleRegistration({
           id="vehicle-registration-form"
           onSubmit={handleSubmit}
           noValidate
+          aria-busy={submitting}
         >
           <section className={styles.panel} aria-labelledby={id("general")}>
             <h2 id={id("general")} className={styles.panelTitle}>
@@ -501,11 +616,15 @@ export default function VehicleRegistration({
               <div className={styles.field}>
                 <label htmlFor={id("price")} className={styles.label}>
                   Preço (GTA$)
+                  <span className={styles.required} aria-hidden>
+                    *
+                  </span>
                 </label>
                 <input
                   id={id("price")}
                   className={styles.control}
                   type="number"
+                  required
                   min={0}
                   step={1}
                   inputMode="numeric"
@@ -636,27 +755,56 @@ export default function VehicleRegistration({
                     id={id("tags")}
                     className={styles.tagInput}
                     type="text"
+                    maxLength={TAG_MAX_LENGTH}
                     placeholder="Adicionar e Enter"
                     value={tagInput}
                     onChange={(e) => setTagInput(e.target.value)}
                     onKeyDown={handleTagKeyDown}
                     onBlur={() => addTag(tagInput)}
+                    aria-invalid={Boolean(errors.tags)}
+                    aria-describedby={errors.tags ? id("tags-error") : undefined}
                   />
                 </div>
+                {errors.tags && (
+                  <p
+                    id={id("tags-error")}
+                    className={styles.fieldError}
+                    role="alert"
+                  >
+                    {errors.tags}
+                  </p>
+                )}
               </div>
 
               <div className={`${styles.field} ${styles.full}`}>
                 <label htmlFor={id("description")} className={styles.label}>
                   Breve descrição
+                  <span className={styles.required} aria-hidden>
+                    *
+                  </span>
                 </label>
                 <textarea
                   id={id("description")}
                   className={`${styles.control} ${styles.textarea}`}
                   rows={3}
+                  required
                   placeholder="Breve descrição"
                   value={vehicle.description}
                   onChange={(e) => update("description", e.target.value)}
+                  aria-invalid={Boolean(errors.description)}
+                  aria-describedby={
+                    errors.description ? id("description-error") : undefined
+                  }
                 />
+                {errors.description && (
+                  <p
+                    id={id("description-error")}
+                    className={styles.fieldError}
+                    role="alert"
+                  >
+                    {errors.description}
+                  </p>
+                )}
               </div>
             </div>
           </section>
@@ -705,6 +853,11 @@ export default function VehicleRegistration({
                 );
               })}
             </div>
+            {errors.stats && (
+              <p className={styles.fieldError} role="alert">
+                {errors.stats}
+              </p>
+            )}
           </section>
 
           <section className={styles.panel} aria-labelledby={id("media")}>
@@ -723,6 +876,10 @@ export default function VehicleRegistration({
                 placeholder="https://..."
                 value={vehicle.imageUrl}
                 onChange={(e) => update("imageUrl", e.target.value)}
+                aria-invalid={Boolean(errors.imageUrl)}
+                aria-describedby={
+                  errors.imageUrl ? id("imageUrl-error") : undefined
+                }
               />
             </div>
 
@@ -768,6 +925,7 @@ export default function VehicleRegistration({
               type="button"
               className={styles.btnGhost}
               onClick={handleReset}
+              disabled={submitting}
             >
               Limpar
             </button>

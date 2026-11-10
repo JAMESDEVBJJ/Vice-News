@@ -291,3 +291,27 @@
   outline: 2px solid var(--color-neon-pink);
   outline-offset: 3px;
 }
+
+/* Carregamento */
+
+.spinner {
+  color: var(--color-neon-pink);
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* .emptyAction também é usado em links (estado sem veículos) */
+a.emptyAction {
+  text-decoration: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation-duration: 2.4s;
+  }
+}

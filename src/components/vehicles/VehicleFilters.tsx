@@ -1,18 +1,22 @@
 import { useId } from "react";
 import { Check, Search, X } from "lucide-react";
-import { vehicleTags, type VehicleTag } from "../../data/vehiclesMock";
+import type { VehicleTagResponse } from "../../api/vehicleLookupsApi";
 import styles from "./VehicleFilters.module.css";
 
 interface VehicleFiltersProps {
   query: string;
   onQueryChange: (value: string) => void;
-  activeTags: VehicleTag[];
-  onToggleTag: (tag: VehicleTag) => void;
+  /** Tags disponíveis para filtro. */
+  tags: VehicleTagResponse[];
+  /** Slugs das tags selecionadas. */
+  activeTags: string[];
+  onToggleTag: (slug: string) => void;
 }
 
 export default function VehicleFilters({
   query,
   onQueryChange,
+  tags,
   activeTags,
   onToggleTag,
 }: VehicleFiltersProps) {
@@ -45,29 +49,31 @@ export default function VehicleFilters({
         )}
       </div>
 
-      <ul className={styles.tags} aria-label="Filtrar por etiqueta">
-        {vehicleTags.map((tag) => {
-          const isActive = activeTags.includes(tag);
+      {tags.length > 0 && (
+        <ul className={styles.tags} aria-label="Filtrar por etiqueta">
+          {tags.map(({ id, name, slug }) => {
+            const isActive = activeTags.includes(slug);
 
-          return (
-            <li key={tag}>
-              <button
-                type="button"
-                aria-pressed={isActive}
-                className={`${styles.chip} ${
-                  isActive ? styles.chipActive : ""
-                }`}
-                onClick={() => onToggleTag(tag)}
-              >
-                <span className={styles.box} aria-hidden>
-                  <Check size={11} strokeWidth={3} />
-                </span>
-                {tag}
-              </button>
-            </li>
-          );
-        })}
-      </ul>
+            return (
+              <li key={id}>
+                <button
+                  type="button"
+                  aria-pressed={isActive}
+                  className={`${styles.chip} ${
+                    isActive ? styles.chipActive : ""
+                  }`}
+                  onClick={() => onToggleTag(slug)}
+                >
+                  <span className={styles.box} aria-hidden>
+                    <Check size={11} strokeWidth={3} />
+                  </span>
+                  {name}
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      )}
     </div>
   );
 }

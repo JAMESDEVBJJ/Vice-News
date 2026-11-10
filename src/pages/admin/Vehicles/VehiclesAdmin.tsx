@@ -1,11 +1,26 @@
+import { useState } from "react";
 import VehicleRegistration from "./VehicleRegistration";
 import pageStyles from "./Vehicles.module.css";
 import headerStyles from "../NewsEditor.module.css";
 import Footer from "../../../components/layout/Footer";
-import { Link } from "react-router-dom";
-import { ArrowLeft, CarFront } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { ArrowLeft, CarFront, Loader2 } from "lucide-react";
+import type { VehicleResponse } from "../../../api/vehiclesApi";
+import { toast } from "../../../lib/toast";
 
 export default function VehiclesAdmin() {
+  const navigate = useNavigate();
+  const [submitting, setSubmitting] = useState(false);
+
+  function handleCreated(vehicle: VehicleResponse) {
+    toast.success(
+      "Veículo cadastrado",
+      `${vehicle.name} já está disponível na base de veículos.`
+    );
+    // A listagem busca os dados ao montar, então já exibe o novo veículo.
+    navigate("/vehicles");
+  }
+
   return (
     <div className={pageStyles.page}>
       <header className={headerStyles.topbar}>
@@ -25,16 +40,25 @@ export default function VehiclesAdmin() {
               type="submit"
               form="vehicle-registration-form"
               className={headerStyles.btnPrimary}
+              disabled={submitting}
+              aria-busy={submitting}
             >
-              <CarFront size={16} aria-hidden="true" />
-              Cadastrar veículo
+              {submitting ? (
+                <Loader2 size={16} className={pageStyles.spinner} aria-hidden="true" />
+              ) : (
+                <CarFront size={16} aria-hidden="true" />
+              )}
+              {submitting ? "Cadastrando…" : "Cadastrar veículo"}
             </button>
           </div>
         </div>
       </header>
 
       <main className={pageStyles.main}>
-        <VehicleRegistration />
+        <VehicleRegistration
+          onCreated={handleCreated}
+          onSubmittingChange={setSubmitting}
+        />
       </main>
 
       <Footer />
