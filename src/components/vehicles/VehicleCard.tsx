@@ -1,21 +1,9 @@
 import { useState, type CSSProperties } from "react";
 import { ArrowRight } from "lucide-react";
-import type { VehicleResponse, VehicleStatKey } from "../../api/vehiclesApi";
+import type { VehicleResponse } from "../../api/vehiclesApi";
 import CategoryIcon from "./CategoryIcon";
+import { STAT_MAX, STATS, priceFormat, statPercent } from "./vehicleStats";
 import styles from "./VehicleCard.module.css";
-
-const STATS: { key: VehicleStatKey; label: string }[] = [
-  { key: "maxSpeed", label: "Velocidade" },
-  { key: "acceleration", label: "Aceleração" },
-  { key: "braking", label: "Frenagem" },
-  { key: "handling", label: "Dirigibilidade" },
-];
-
-const priceFormat = new Intl.NumberFormat("en-US", {
-  style: "currency",
-  currency: "USD",
-  maximumFractionDigits: 0,
-});
 
 interface VehicleCardProps {
   vehicle: VehicleResponse;
@@ -95,12 +83,12 @@ export default function VehicleCard({
                   role="meter"
                   aria-label={label}
                   aria-valuemin={0}
-                  aria-valuemax={100}
+                  aria-valuemax={STAT_MAX}
                   aria-valuenow={vehicle[key]}
                 >
                   <span
                     className={styles.fill}
-                    style={{ width: `${vehicle[key]}%` }}
+                    style={{ width: `${statPercent(vehicle[key])}%` }}
                   />
                 </div>
               </div>
@@ -116,6 +104,8 @@ export default function VehicleCard({
           <button
             type="button"
             className={styles.details}
+            aria-haspopup="dialog"
+            aria-label={`Ver detalhes de ${manufacturer.name} ${name}`}
             onClick={() => onSelect?.(vehicle)}
           >
             Ver detalhes <ArrowRight size={15} aria-hidden />

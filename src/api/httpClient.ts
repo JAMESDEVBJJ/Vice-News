@@ -1,9 +1,5 @@
 import { API_BASE_URL } from "../config/env";
 
-/**
- * Categorias de erro que a API pode produzir. As três primeiras espelham o
- * ServiceErrorType do backend (Validation → 400, NotFound → 404, Conflict → 409).
- */
 export type ApiErrorKind =
   | "validation"
   | "not-found"
@@ -13,7 +9,6 @@ export type ApiErrorKind =
   | "invalid-response"
   | "unexpected";
 
-/** Erros de validação por campo, com chaves normalizadas em camelCase. */
 export type FieldErrors = Record<string, string[]>;
 
 const FALLBACK_MESSAGES: Record<ApiErrorKind, string> = {

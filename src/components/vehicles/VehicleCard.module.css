@@ -1,4 +1,6 @@
 .card {
+  position: relative;
+  isolation: isolate;
   display: flex;
   flex-direction: column;
   min-width: 0;
@@ -17,8 +19,6 @@
   box-shadow: 0 24px 48px -28px color-mix(in srgb, var(--color-neon-pink) 60%, transparent);
 }
 
-/* Mídia */
-
 .media {
   position: relative;
   aspect-ratio: 16 / 10;
@@ -26,7 +26,6 @@
   background: var(--color-ink-950);
 }
 
-/* Escurece o topo (legibilidade das pílulas) e funde a base com o corpo do card */
 .media::after {
   content: "";
   position: absolute;
@@ -101,8 +100,6 @@
   left: 0.75rem;
 }
 
-/* Corpo */
-
 .body {
   display: flex;
   flex: 1;
@@ -153,8 +150,6 @@
   text-transform: uppercase;
   color: var(--color-fog-300, #cfc8d8);
 }
-
-/* Desempenho */
 
 .stats {
   margin-top: auto;
@@ -227,8 +222,6 @@
   }
 }
 
-/* Rodapé */
-
 .footer {
   display: flex;
   align-items: center;
@@ -276,6 +269,14 @@
 .details:hover svg,
 .card:hover .details svg {
   transform: translateX(3px);
+}
+
+.details::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  cursor: pointer;
 }
 
 .details:focus-visible {

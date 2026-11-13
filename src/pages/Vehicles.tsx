@@ -1,9 +1,10 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { AlertTriangle, CarFront, Info, Loader2, SearchX } from "lucide-react";
 import CategoryNav from "../components/vehicles/CategoryNav";
 import VehicleFilters from "../components/vehicles/VehicleFilters";
 import VehicleCard from "../components/vehicles/VehicleCard";
+import VehicleDetailsModal from "../components/vehicles/VehicleDetailsModal";
 import { getVehicles, type VehicleResponse } from "../api/vehiclesApi";
 import {
   getVehicleCategories,
@@ -59,6 +60,8 @@ export default function Vehicles() {
   const [category, setCategory] = useState<number | null>(null);
   const [query, setQuery] = useState("");
   const [activeTags, setActiveTags] = useState<string[]>([]);
+  const [selectedVehicle, setSelectedVehicle] =
+    useState<VehicleResponse | null>(null);
 
   const vehicles = useMemo(
     () => vehiclesResource.data ?? [],
@@ -103,6 +106,8 @@ export default function Vehicles() {
     setQuery("");
     setActiveTags([]);
   };
+
+  const closeVehicle = useCallback(() => setSelectedVehicle(null), []);
 
   const retry = () => {
     vehiclesResource.retry();
@@ -223,6 +228,7 @@ export default function Vehicles() {
                       key={vehicle.id}
                       vehicle={vehicle}
                       index={index}
+                      onSelect={setSelectedVehicle}
                     />
                   ))}
                 </div>
@@ -248,6 +254,14 @@ export default function Vehicles() {
         </section>
       </main>
       <Footer></Footer>
+
+      {selectedVehicle && (
+        <VehicleDetailsModal
+          key={selectedVehicle.id}
+          vehicle={selectedVehicle}
+          onClose={closeVehicle}
+        />
+      )}
     </div>
   );
 }

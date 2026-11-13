@@ -6,21 +6,17 @@ import {
   type VehicleTagResponse,
 } from "./vehicleLookupsApi";
 
-/** Espelha VehicleResponseDto (GET /api/vehicles, GET /api/vehicles/{id}, POST). */
 export interface VehicleResponse {
   id: number;
   name: string;
   slug: string;
-  /** Preço em GTA$ (long no backend). */
   priceGta: number;
   description: string;
   imageUrl: string | null;
-  /** Estatísticas de 0 a 100. */
   maxSpeed: number;
   acceleration: number;
   braking: number;
   handling: number;
-  /** ISO 8601 em UTC. */
   createdAt: string;
   updatedAt: string;
   manufacturer: ManufacturerResponse;
@@ -34,7 +30,6 @@ export type VehicleStatKey =
   | "braking"
   | "handling";
 
-/** Espelha CreateVehicleRequestDto (POST /api/vehicles). */
 export interface CreateVehicleRequest {
   name: string;
   manufacturerId: number;
@@ -46,7 +41,6 @@ export interface CreateVehicleRequest {
   braking: number;
   handling: number;
   imageUrl: string | null;
-  /** Nomes das tags; a API localiza ou cria cada uma. */
   tags: string[];
 }
 

@@ -30,11 +30,6 @@ import { useApiResource } from "../../../hooks/useApiResource";
 import { slugify } from "../../../lib/slug";
 import { toast } from "../../../lib/toast";
 
-// Lista fixa mantida apenas por compatibilidade com possíveis imports externos.
-// O formulário agora carrega as categorias de GET /api/vehicle-categories.
-export const CATEGORIES = ["Carros", "Motos", "Barcos", "Aeronaves"] as const;
-export type VehicleCategory = (typeof CATEGORIES)[number];
-
 const STATS = [
   { key: "topSpeed", label: "Velocidade Máxima" },
   { key: "acceleration", label: "Aceleração" },
@@ -56,9 +51,8 @@ export interface VehicleDraft {
 }
 
 interface VehicleRegistrationProps {
-  /** Chamado após o POST /api/vehicles retornar 201, com o veículo criado. */
   onCreated?: (vehicle: VehicleResponse) => void;
-  /** Informa o início e o fim do envio (ex.: para desabilitar o botão do topo). */
+
   onSubmittingChange?: (submitting: boolean) => void;
 }
 
@@ -73,7 +67,6 @@ const INITIAL_VEHICLE: VehicleDraft = {
   stats: { topSpeed: 50, acceleration: 50, braking: 50, handling: 50 },
 };
 
-// Limites do CreateVehicleRequestDto e da VehicleTagConfiguration no backend.
 const DESCRIPTION_MAX_LENGTH = 300;
 const TAG_MAX_LENGTH = 100;
 
@@ -188,7 +181,6 @@ function hasErrors(errors: VehicleErrors): boolean {
   return Object.keys(errors).length > 0;
 }
 
-/** Monta o CreateVehicleRequestDto a partir do rascunho já validado. */
 function toCreateVehicleRequest(vehicle: VehicleDraft): CreateVehicleRequest {
   return {
     name: vehicle.name.trim(),
