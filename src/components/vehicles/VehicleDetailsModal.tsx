@@ -8,12 +8,12 @@ import {
   Trash2,
   X,
 } from "lucide-react";
-import type { VehicleResponse } from "../../api/vehiclesApi";
 import { useStatReveal } from "../../hooks/useStatReveal";
 import { isAdmin } from "../../lib/auth";
 import CategoryIcon from "./CategoryIcon";
 import { STAT_MAX, STATS, priceFormat, statPercent } from "./vehicleStats";
 import styles from "./VehicleDetailsModal.module.css";
+import { type VehicleResponse } from "../../api/vehiclesApi";
 
 const FOCUSABLE_SELECTOR =
   'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
@@ -98,11 +98,16 @@ function useDialogKeyboard(
 interface VehicleDetailsModalProps {
   vehicle: VehicleResponse;
   onClose: () => void;
+  onEdit?: (vehicle: VehicleResponse) => void;
+  onDelete?: (vehicle: VehicleResponse) => void;
+  deleting?: boolean;
 }
 
 export default function VehicleDetailsModal({
   vehicle,
   onClose,
+  onDelete,
+  onEdit,
 }: VehicleDetailsModalProps) {
   const {
     name,
@@ -291,7 +296,7 @@ export default function VehicleDetailsModal({
           </div>
         </article>
 
-        {canManage && adminOpen && (
+        {canManage && adminOpen && onDelete && onEdit && (
           <section className={styles.admin} aria-labelledby={adminTitleId}>
             <div className={styles.adminHeader}>
               <ShieldCheck size={15} aria-hidden />
@@ -305,20 +310,18 @@ export default function VehicleDetailsModal({
               <button
                 type="button"
                 className={`${styles.adminAction} ${styles.adminEdit}`}
-                disabled
+                onClick={() => onEdit(vehicle)}
               >
                 <Pencil size={15} aria-hidden />
                 <span>Editar veículo</span>
-                <span className={styles.soon}>Em breve</span>
               </button>
               <button
                 type="button"
                 className={`${styles.adminAction} ${styles.adminDelete}`}
-                disabled
+                onClick={() => onDelete(vehicle)}
               >
                 <Trash2 size={15} aria-hidden />
                 <span>Excluir veículo</span>
-                <span className={styles.soon}>Em breve</span>
               </button>
             </div>
 

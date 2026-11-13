@@ -126,10 +126,6 @@ interface RequestOptions<T> {
   validate: (data: unknown) => data is T;
 }
 
-/**
- * Executa uma requisição JSON contra a API. Erros HTTP, de rede e de formato viram
- * ApiError; cancelamentos via AbortSignal são repassados sem conversão.
- */
 export async function apiRequest<T>(
   path: string,
   { method = "GET", body, signal, validate }: RequestOptions<T>
@@ -175,7 +171,6 @@ export async function apiRequest<T>(
   return data;
 }
 
-/** Mensagem amigável para qualquer erro lançado pela camada de API. */
 export function getErrorMessage(error: unknown): string {
   return error instanceof ApiError
     ? error.message

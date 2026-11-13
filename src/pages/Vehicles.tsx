@@ -1,22 +1,27 @@
 import { useCallback, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { AlertTriangle, CarFront, Info, Loader2, SearchX } from "lucide-react";
 import CategoryNav from "../components/vehicles/CategoryNav";
 import VehicleFilters from "../components/vehicles/VehicleFilters";
 import VehicleCard from "../components/vehicles/VehicleCard";
 import VehicleDetailsModal from "../components/vehicles/VehicleDetailsModal";
-import { getVehicles, type VehicleResponse } from "../api/vehiclesApi";
+import {
+  deleteVehicle,
+  getVehicles,
+  type VehicleResponse,
+} from "../api/vehiclesApi";
 import {
   getVehicleCategories,
   type VehicleCategoryResponse,
   type VehicleTagResponse,
 } from "../api/vehicleLookupsApi";
-import { getErrorMessage } from "../api/httpClient";
+import { ApiError, getErrorMessage } from "../api/httpClient";
 import { useApiResource } from "../hooks/useApiResource";
 import { isAdmin } from "../lib/auth";
 import styles from "./Vehicles.module.css";
 import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
+import { toast } from "../lib/toast";
 
 function mergeCategories(
   catalog: VehicleCategoryResponse[],
@@ -67,10 +72,12 @@ export default function Vehicles() {
     () => vehiclesResource.data ?? [],
     [vehiclesResource.data]
   );
+
   const categories = useMemo(
     () => mergeCategories(categoriesResource.data ?? [], vehicles),
     [categoriesResource.data, vehicles]
   );
+
   const categoryCounts = useMemo(() => countByCategory(vehicles), [vehicles]);
   const availableTags = useMemo(() => collectTags(vehicles), [vehicles]);
 
@@ -113,6 +120,40 @@ export default function Vehicles() {
     vehiclesResource.retry();
     if (categoriesResource.status === "error") categoriesResource.retry();
   };
+
+  const navigate = useNavigate();
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+
+  const handleEdit = (vehicle: VehicleResponse) => {
+    navigate(`/admin/vehicles/${vehicle.id}/edit`);
+  };
+
+  async function handleDelete(vehicle: VehicleResponse) {
+    if (deletingId !== null) return;
+
+    const label = `${vehicle.manufacturer.name} ${vehicle.name}`;
+    if (
+      !window.confirm(`Excluir "${label}"? Essa ação não pode ser desfeita.`)
+    ) {
+      return;
+    }
+
+    setDeletingId(vehicle.id);
+    try {
+      await deleteVehicle(vehicle.id);
+      setSelectedVehicle(null);
+      toast.success("Veículo excluído", `${label} foi removido.`);
+      vehiclesResource.retry(); // recarrega a lista
+    } catch (error) {
+      if (error instanceof ApiError && error.kind === "not-found") {
+        setSelectedVehicle(null);
+        vehiclesResource.retry();
+      }
+      toast.error("Não foi possível excluir o veículo", getErrorMessage(error));
+    } finally {
+      setDeletingId(null);
+    }
+  }
 
   return (
     <div className={styles.page}>
@@ -260,6 +301,9 @@ export default function Vehicles() {
           key={selectedVehicle.id}
           vehicle={selectedVehicle}
           onClose={closeVehicle}
+          onEdit={isAdmin() ? handleEdit : undefined}
+          onDelete={isAdmin() ? handleDelete : undefined}
+          deleting={deletingId === selectedVehicle.id}
         />
       )}
     </div>

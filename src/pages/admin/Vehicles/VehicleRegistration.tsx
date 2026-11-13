@@ -7,6 +7,7 @@ import {
   type CSSProperties,
   type FormEvent,
   type KeyboardEvent,
+  useCallback,
 } from "react";
 import { CheckCircle2, ChevronDown, ImageOff, X } from "lucide-react";
 import styles from "./VehicleRegistration.module.css";
@@ -18,8 +19,10 @@ import {
 } from "../../../api/vehicleLookupsApi";
 import {
   createVehicle,
+  getVehicleById,
   type CreateVehicleRequest,
   type VehicleResponse,
+  updateVehicle,
 } from "../../../api/vehiclesApi";
 import {
   ApiError,
@@ -29,6 +32,7 @@ import {
 import { useApiResource } from "../../../hooks/useApiResource";
 import { slugify } from "../../../lib/slug";
 import { toast } from "../../../lib/toast";
+import { useParams } from "react-router-dom";
 
 const STATS = [
   { key: "topSpeed", label: "Velocidade Máxima" },
@@ -51,9 +55,27 @@ export interface VehicleDraft {
 }
 
 interface VehicleRegistrationProps {
+  vehicleToEdit?: VehicleResponse;
   onCreated?: (vehicle: VehicleResponse) => void;
-
   onSubmittingChange?: (submitting: boolean) => void;
+}
+
+function toDraft(v: VehicleResponse): VehicleDraft {
+  return {
+    name: v.name,
+    manufacturerId: v.manufacturer.id,
+    price: String(v.priceGta),
+    categoryId: v.category.id,
+    tags: v.tags.map((tag) => tag.name),
+    description: v.description,
+    imageUrl: v.imageUrl ?? "",
+    stats: {
+      topSpeed: v.maxSpeed,
+      acceleration: v.acceleration,
+      braking: v.braking,
+      handling: v.handling,
+    },
+  };
 }
 
 const INITIAL_VEHICLE: VehicleDraft = {
@@ -197,7 +219,6 @@ function toCreateVehicleRequest(vehicle: VehicleDraft): CreateVehicleRequest {
   };
 }
 
-/** Campos do CreateVehicleRequestDto (chaves já em camelCase) → campos do formulário. */
 const SERVER_FIELD_TO_FORM_FIELD: Record<string, keyof VehicleErrors> = {
   name: "name",
   manufacturerId: "manufacturerId",
@@ -212,7 +233,6 @@ const SERVER_FIELD_TO_FORM_FIELD: Record<string, keyof VehicleErrors> = {
   handling: "stats",
 };
 
-/** Separa os erros de validação da API entre campos do formulário e mensagens avulsas. */
 function mapServerFieldErrors(fieldErrors: FieldErrors) {
   const errors: VehicleErrors = {};
   const unmatched: string[] = [];
@@ -270,6 +290,7 @@ function lookupPlaceholder(
 export default function VehicleRegistration({
   onCreated,
   onSubmittingChange,
+  vehicleToEdit,
 }: VehicleRegistrationProps) {
   const [showErrors, setShowErrors] = useState(false);
   const [serverErrors, setServerErrors] = useState<VehicleErrors>({});
@@ -279,7 +300,11 @@ export default function VehicleRegistration({
   const uid = useId();
   const id = (field: string) => `${uid}-${field}`;
 
-  const [vehicle, setVehicle] = useState<VehicleDraft>(INITIAL_VEHICLE);
+  const initialVehicle = vehicleToEdit
+    ? toDraft(vehicleToEdit)
+    : INITIAL_VEHICLE;
+  const [vehicle, setVehicle] = useState<VehicleDraft>(initialVehicle);
+
   const [tagInput, setTagInput] = useState("");
   const [failedUrl, setFailedUrl] = useState<string | null>(null);
 
@@ -351,9 +376,13 @@ export default function VehicleRegistration({
     setSubmittingState(true);
 
     try {
-      const created = await createVehicle(toCreateVehicleRequest(vehicle));
-      handleReset();
-      onCreated?.(created);
+      const payload = toCreateVehicleRequest(vehicle);
+      const saved = vehicleToEdit
+        ? await updateVehicle(vehicleToEdit.id, payload)
+        : await createVehicle(payload);
+
+      if (!vehicleToEdit) handleReset();
+      onCreated?.(saved);
     } catch (error) {
       handleSubmitError(error);
     } finally {
@@ -363,7 +392,10 @@ export default function VehicleRegistration({
 
   function handleSubmitError(error: unknown) {
     if (!(error instanceof ApiError)) {
-      toast.error("Não foi possível cadastrar o veículo", getErrorMessage(error));
+      toast.error(
+        "Não foi possível cadastrar o veículo",
+        getErrorMessage(error)
+      );
       return;
     }
 
@@ -754,7 +786,9 @@ export default function VehicleRegistration({
                     onKeyDown={handleTagKeyDown}
                     onBlur={() => addTag(tagInput)}
                     aria-invalid={Boolean(errors.tags)}
-                    aria-describedby={errors.tags ? id("tags-error") : undefined}
+                    aria-describedby={
+                      errors.tags ? id("tags-error") : undefined
+                    }
                   />
                 </div>
                 {errors.tags && (

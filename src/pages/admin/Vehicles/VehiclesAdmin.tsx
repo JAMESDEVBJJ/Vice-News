@@ -1,25 +1,42 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import VehicleRegistration from "./VehicleRegistration";
 import pageStyles from "./Vehicles.module.css";
 import headerStyles from "../NewsEditor.module.css";
 import Footer from "../../../components/layout/Footer";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, CarFront, Loader2 } from "lucide-react";
-import type { VehicleResponse } from "../../../api/vehiclesApi";
+import { getVehicleById, type VehicleResponse } from "../../../api/vehiclesApi";
 import { toast } from "../../../lib/toast";
+import { useApiResource } from "../../../hooks/useApiResource";
 
-export default function VehiclesAdmin() {
+interface VehiclesAdminProps {
+  vehicleToEdit?: VehicleResponse;
+}
+
+export default function VehiclesAdmin({ vehicleToEdit }: VehiclesAdminProps) {
   const navigate = useNavigate();
   const [submitting, setSubmitting] = useState(false);
+  const isEditing = vehicleToEdit !== undefined;
 
   function handleCreated(vehicle: VehicleResponse) {
     toast.success(
-      "Veículo cadastrado",
-      `${vehicle.name} já está disponível na base de veículos.`
+      isEditing ? "Veículo atualizado" : "Veículo cadastrado",
+      isEditing
+        ? `${vehicle.name} foi atualizado.`
+        : `${vehicle.name} já está disponível na base de veículos.`
     );
-    // A listagem busca os dados ao montar, então já exibe o novo veículo.
     navigate("/vehicles");
   }
+
+  const { id } = useParams();
+  const vehicleId = id ? Number(id) : null;
+
+  const loadVehicle = useCallback(
+    (signal: AbortSignal) => getVehicleById(vehicleId as number, signal),
+    [vehicleId]
+  );
+
+  const { status, data, error, retry } = useApiResource(loadVehicle);
 
   return (
     <div className={pageStyles.page}>
@@ -32,7 +49,9 @@ export default function VehiclesAdmin() {
 
           <div className={headerStyles.topbarTitle}>
             <span className={headerStyles.eyebrow}>ADMIN</span>
-            <h1 className={headerStyles.pageTitle}>Novo veículo</h1>
+            <h1 className={headerStyles.pageTitle}>
+              {isEditing ? "Editar veículo" : "Novo veículo"}
+            </h1>
           </div>
 
           <div className={headerStyles.actions}>
@@ -44,11 +63,21 @@ export default function VehiclesAdmin() {
               aria-busy={submitting}
             >
               {submitting ? (
-                <Loader2 size={16} className={pageStyles.spinner} aria-hidden="true" />
+                <Loader2
+                  size={16}
+                  className={pageStyles.spinner}
+                  aria-hidden="true"
+                />
               ) : (
                 <CarFront size={16} aria-hidden="true" />
               )}
-              {submitting ? "Cadastrando…" : "Cadastrar veículo"}
+              {submitting
+                ? isEditing
+                  ? "Salvando…"
+                  : "Cadastrando…"
+                : isEditing
+                ? "Salvar alterações"
+                : "Cadastrar veículo"}
             </button>
           </div>
         </div>

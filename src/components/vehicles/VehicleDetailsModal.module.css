@@ -409,10 +409,21 @@
   text-align: left;
   text-transform: uppercase;
   color: var(--color-fog-300, #cfc8d8);
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.adminAction:hover {
+  transform: translateY(-1px);
+}
+
+.adminAction:active {
+  transform: translateY(0);
 }
 
 .adminAction:disabled {
   cursor: not-allowed;
+  opacity: 0.5;
 }
 
 .adminEdit {
@@ -437,6 +448,24 @@
 
 .adminDelete svg {
   color: var(--color-neon-pink);
+}
+
+.adminEdit:hover {
+  background: color-mix(
+    in srgb,
+    var(--color-neon-purple, #9d5cff) 10%,
+    var(--color-ink-850)
+  );
+  border-color: var(--color-neon-purple, #9d5cff);
+}
+
+.adminDelete:hover {
+  background: color-mix(
+    in srgb,
+    var(--color-neon-pink) 10%,
+    var(--color-ink-850)
+  );
+  border-color: var(--color-neon-pink);
 }
 
 .soon {

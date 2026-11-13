@@ -44,6 +44,8 @@ export interface CreateVehicleRequest {
   tags: string[];
 }
 
+export type UpdateVehicleRequest = CreateVehicleRequest;
+
 function isVehicleResponse(value: unknown): value is VehicleResponse {
   if (typeof value !== "object" || value === null) return false;
 
@@ -69,6 +71,10 @@ function isVehicleList(value: unknown): value is VehicleResponse[] {
   return Array.isArray(value) && value.every(isVehicleResponse);
 }
 
+function isEmptyBody(value: unknown): value is undefined {
+  return value === undefined || value === null;
+}
+
 export function getVehicles(signal?: AbortSignal): Promise<VehicleResponse[]> {
   return apiRequest("/vehicles", { signal, validate: isVehicleList });
 }
@@ -82,5 +88,36 @@ export function createVehicle(
     body: request,
     signal,
     validate: isVehicleResponse,
+  });
+}
+
+export function getVehicleById(
+  id: number,
+  signal?: AbortSignal
+): Promise<VehicleResponse> {
+  return apiRequest(`/vehicles/${id}`, { signal, validate: isVehicleResponse });
+}
+
+export function updateVehicle(
+  id: number,
+  request: UpdateVehicleRequest,
+  signal?: AbortSignal
+): Promise<VehicleResponse> {
+  return apiRequest(`/vehicles/${id}`, {
+    method: "PUT",
+    body: request,
+    signal,
+    validate: isVehicleResponse,
+  });
+}
+
+export async function deleteVehicle(
+  id: number,
+  signal?: AbortSignal
+): Promise<void> {
+  await apiRequest(`/vehicles/${id}`, {
+    method: "DELETE",
+    signal,
+    validate: isEmptyBody,
   });
 }
