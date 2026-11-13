@@ -16,8 +16,11 @@ interface VehiclesAdminProps {
 export default function VehiclesAdmin({ vehicleToEdit }: VehiclesAdminProps) {
   const navigate = useNavigate();
   const [submitting, setSubmitting] = useState(false);
-  const isEditing = vehicleToEdit !== undefined;
 
+  const { id } = useParams();
+  const vehicleId = id ? Number(id) : null;
+
+  const isEditing = Boolean(vehicleId);
   function handleCreated(vehicle: VehicleResponse) {
     toast.success(
       isEditing ? "Veículo atualizado" : "Veículo cadastrado",
@@ -27,9 +30,6 @@ export default function VehiclesAdmin({ vehicleToEdit }: VehiclesAdminProps) {
     );
     navigate("/vehicles");
   }
-
-  const { id } = useParams();
-  const vehicleId = id ? Number(id) : null;
 
   const loadVehicle = useCallback(
     (signal: AbortSignal) => getVehicleById(vehicleId as number, signal),
@@ -84,10 +84,23 @@ export default function VehiclesAdmin({ vehicleToEdit }: VehiclesAdminProps) {
       </header>
 
       <main className={pageStyles.main}>
-        <VehicleRegistration
-          onCreated={handleCreated}
-          onSubmittingChange={setSubmitting}
-        />
+        {vehicleId ? (
+          data ? (
+            <VehicleRegistration
+              key={vehicleId}
+              vehicleToEdit={data}
+              onCreated={handleCreated}
+              onSubmittingChange={setSubmitting}
+            />
+          ) : (
+            <p>Carregando veículo...</p>
+          )
+        ) : (
+          <VehicleRegistration
+            onCreated={handleCreated}
+            onSubmittingChange={setSubmitting}
+          />
+        )}
       </main>
 
       <Footer />

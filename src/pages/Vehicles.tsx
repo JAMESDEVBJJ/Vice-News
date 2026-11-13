@@ -143,7 +143,8 @@ export default function Vehicles() {
       await deleteVehicle(vehicle.id);
       setSelectedVehicle(null);
       toast.success("Veículo excluído", `${label} foi removido.`);
-      vehiclesResource.retry(); // recarrega a lista
+      vehiclesResource.retry();
+      navigate(`/admin/vehicles/`);
     } catch (error) {
       if (error instanceof ApiError && error.kind === "not-found") {
         setSelectedVehicle(null);

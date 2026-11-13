@@ -295,7 +295,7 @@ export default function VehicleRegistration({
   const [showErrors, setShowErrors] = useState(false);
   const [serverErrors, setServerErrors] = useState<VehicleErrors>({});
   const [submitting, setSubmitting] = useState(false);
-  // Trava síncrona: evita dois envios antes de o estado "submitting" renderizar.
+
   const submittingRef = useRef(false);
   const uid = useId();
   const id = (field: string) => `${uid}-${field}`;
@@ -314,7 +314,6 @@ export default function VehicleRegistration({
   const manufacturerItems = manufacturers.items;
   const categoryItems = categories.items;
 
-  // Erros do cliente são derivados do rascunho; os da API valem até a próxima edição.
   const errors: VehicleErrors = {
     ...(showErrors
       ? validateVehicle(vehicle, {
