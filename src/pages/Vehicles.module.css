@@ -51,8 +51,6 @@
   border: 0;
 }
 
-/* Hero */
-
 .hero {
   display: grid;
   gap: 2rem;
@@ -106,8 +104,6 @@
   color: var(--color-neon-purple, #9d5cff);
 }
 
-/* Placa decorativa */
-
 .plate {
   display: none;
 }
@@ -156,8 +152,6 @@
   letter-spacing: 0.04em;
   color: var(--color-fog-500);
 }
-
-/* Filtros e resultados */
 
 .toolbar {
   margin-top: 1.5rem;
@@ -209,8 +203,6 @@
   outline-offset: 2px;
 }
 
-/* Grid */
-
 .grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -235,8 +227,6 @@
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
-
-/* Estado vazio */
 
 .empty {
   display: flex;
@@ -290,4 +280,26 @@
 .emptyAction:focus-visible {
   outline: 2px solid var(--color-neon-pink);
   outline-offset: 3px;
+}
+
+
+.spinner {
+  color: var(--color-neon-pink);
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+a.emptyAction {
+  text-decoration: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation-duration: 2.4s;
+  }
 }

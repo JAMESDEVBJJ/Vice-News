@@ -24,8 +24,6 @@
   border: 0;
 }
 
-/* Busca */
-
 .search {
   position: relative;
   display: flex;
@@ -108,8 +106,6 @@
 .clear:focus-visible {
   outline: 2px solid var(--color-neon-pink);
 }
-
-/* Tags */
 
 .tags {
   display: flex;

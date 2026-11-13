@@ -1,17 +1,38 @@
 import {
-  useEffect,
   useId,
+  useMemo,
+  useRef,
   useState,
   type ChangeEvent,
   type CSSProperties,
   type FormEvent,
   type KeyboardEvent,
+  useCallback,
 } from "react";
 import { CheckCircle2, ChevronDown, ImageOff, X } from "lucide-react";
 import styles from "./VehicleRegistration.module.css";
-
-export const CATEGORIES = ["Carros", "Motos", "Barcos", "Aeronaves"] as const;
-export type VehicleCategory = (typeof CATEGORIES)[number];
+import {
+  getManufacturers,
+  getVehicleCategories,
+  type ManufacturerResponse,
+  type VehicleCategoryResponse,
+} from "../../../api/vehicleLookupsApi";
+import {
+  createVehicle,
+  getVehicleById,
+  type CreateVehicleRequest,
+  type VehicleResponse,
+  updateVehicle,
+} from "../../../api/vehiclesApi";
+import {
+  ApiError,
+  getErrorMessage,
+  type FieldErrors,
+} from "../../../api/httpClient";
+import { useApiResource } from "../../../hooks/useApiResource";
+import { slugify } from "../../../lib/slug";
+import { toast } from "../../../lib/toast";
+import { useParams } from "react-router-dom";
 
 const STATS = [
   { key: "topSpeed", label: "Velocidade Máxima" },
@@ -24,9 +45,9 @@ type StatKey = (typeof STATS)[number]["key"];
 
 export interface VehicleDraft {
   name: string;
-  manufacturer: string;
+  manufacturerId: number | null;
   price: string;
-  category: VehicleCategory;
+  categoryId: number | null;
   tags: string[];
   description: string;
   imageUrl: string;
@@ -34,35 +55,78 @@ export interface VehicleDraft {
 }
 
 interface VehicleRegistrationProps {
-  onSubmit?: (vehicle: VehicleDraft) => void;
+  vehicleToEdit?: VehicleResponse;
+  onCreated?: (vehicle: VehicleResponse) => void;
+  onSubmittingChange?: (submitting: boolean) => void;
+}
+
+function toDraft(v: VehicleResponse): VehicleDraft {
+  return {
+    name: v.name,
+    manufacturerId: v.manufacturer.id,
+    price: String(v.priceGta),
+    categoryId: v.category.id,
+    tags: v.tags.map((tag) => tag.name),
+    description: v.description,
+    imageUrl: v.imageUrl ?? "",
+    stats: {
+      topSpeed: v.maxSpeed,
+      acceleration: v.acceleration,
+      braking: v.braking,
+      handling: v.handling,
+    },
+  };
 }
 
 const INITIAL_VEHICLE: VehicleDraft = {
   name: "",
-  manufacturer: "",
+  manufacturerId: null,
   price: "",
-  category: "Carros",
+  categoryId: null,
   tags: [],
   description: "",
   imageUrl: "",
   stats: { topSpeed: 50, acceleration: 50, braking: 50, handling: 50 },
 };
 
+const DESCRIPTION_MAX_LENGTH = 300;
+const TAG_MAX_LENGTH = 100;
+
 const clampStat = (raw: string) =>
   Math.min(100, Math.max(0, Math.round(Number(raw) || 0)));
 
+const parseOptionId = (raw: string): number | null =>
+  raw === "" ? null : Number(raw);
+
+const describedBy = (...ids: Array<string | false | null | undefined>) =>
+  ids.filter(Boolean).join(" ") || undefined;
+
 type VehicleErrors = Partial<
   Record<
-    "name" | "manufacturer" | "price" | "category" | "description" | "imageUrl",
+    | "name"
+    | "manufacturerId"
+    | "price"
+    | "categoryId"
+    | "description"
+    | "imageUrl"
+    | "tags"
+    | "stats",
     string
   >
 >;
 
-function validateVehicle(vehicle: VehicleDraft): VehicleErrors {
+interface VehicleOptions {
+  manufacturers: ManufacturerResponse[];
+  categories: VehicleCategoryResponse[];
+}
+
+function validateVehicle(
+  vehicle: VehicleDraft,
+  options: VehicleOptions
+): VehicleErrors {
   const errors: VehicleErrors = {};
 
   const name = vehicle.name.trim();
-  const manufacturer = vehicle.manufacturer.trim();
   const price = vehicle.price.trim();
   const description = vehicle.description.trim();
   const imageUrl = vehicle.imageUrl.trim();
@@ -71,32 +135,53 @@ function validateVehicle(vehicle: VehicleDraft): VehicleErrors {
     errors.name = "Informe o nome do veículo.";
   } else if (name.length > 100) {
     errors.name = "O nome deve ter no máximo 100 caracteres.";
+  } else if (!slugify(name)) {
+    errors.name = "O nome deve conter letras ou números.";
   }
 
-  if (!manufacturer) {
-    errors.manufacturer = "Informe o fabricante ou a marca.";
-  } else if (manufacturer.length > 60) {
-    errors.manufacturer = "Use no máximo 60 caracteres.";
+  if (vehicle.manufacturerId === null) {
+    errors.manufacturerId = "Selecione o fabricante ou a marca.";
+  } else if (
+    !options.manufacturers.some((m) => m.id === vehicle.manufacturerId)
+  ) {
+    errors.manufacturerId = "Selecione um fabricante válido.";
   }
 
-  if (price !== "") {
+  if (price === "") {
+    errors.price = "Informe o preço em GTA$.";
+  } else {
     const numericPrice = Number(price);
 
     if (
       !Number.isFinite(numericPrice) ||
       numericPrice < 0 ||
-      !Number.isInteger(numericPrice)
+      !Number.isSafeInteger(numericPrice)
     ) {
       errors.price = "Informe um preço inteiro maior ou igual a zero.";
     }
   }
 
-  if (!CATEGORIES.includes(vehicle.category)) {
-    errors.category = "Selecione uma categoria válida.";
+  if (vehicle.categoryId === null) {
+    errors.categoryId = "Selecione a categoria principal.";
+  } else if (!options.categories.some((c) => c.id === vehicle.categoryId)) {
+    errors.categoryId = "Selecione uma categoria válida.";
   }
 
-  if (description.length > 300) {
-    errors.description = "A descrição deve ter no máximo 300 caracteres.";
+  if (!description) {
+    errors.description = "Informe uma breve descrição do veículo.";
+  } else if (description.length > DESCRIPTION_MAX_LENGTH) {
+    errors.description = `A descrição deve ter no máximo ${DESCRIPTION_MAX_LENGTH} caracteres.`;
+  }
+
+  const invalidTag = vehicle.tags.find(
+    (tag) => tag.length > TAG_MAX_LENGTH || !slugify(tag)
+  );
+
+  if (invalidTag !== undefined) {
+    errors.tags =
+      invalidTag.length > TAG_MAX_LENGTH
+        ? `Cada tag deve ter no máximo ${TAG_MAX_LENGTH} caracteres.`
+        : `A tag "${invalidTag}" deve conter letras ou números.`;
   }
 
   if (imageUrl) {
@@ -118,23 +203,139 @@ function hasErrors(errors: VehicleErrors): boolean {
   return Object.keys(errors).length > 0;
 }
 
+function toCreateVehicleRequest(vehicle: VehicleDraft): CreateVehicleRequest {
+  return {
+    name: vehicle.name.trim(),
+    manufacturerId: vehicle.manufacturerId as number,
+    categoryId: vehicle.categoryId as number,
+    priceGta: Number(vehicle.price.trim()),
+    description: vehicle.description.trim(),
+    maxSpeed: vehicle.stats.topSpeed,
+    acceleration: vehicle.stats.acceleration,
+    braking: vehicle.stats.braking,
+    handling: vehicle.stats.handling,
+    imageUrl: vehicle.imageUrl.trim() || null,
+    tags: vehicle.tags.map((tag) => tag.trim()).filter(Boolean),
+  };
+}
+
+const SERVER_FIELD_TO_FORM_FIELD: Record<string, keyof VehicleErrors> = {
+  name: "name",
+  manufacturerId: "manufacturerId",
+  categoryId: "categoryId",
+  priceGta: "price",
+  description: "description",
+  imageUrl: "imageUrl",
+  tags: "tags",
+  maxSpeed: "stats",
+  acceleration: "stats",
+  braking: "stats",
+  handling: "stats",
+};
+
+function mapServerFieldErrors(fieldErrors: FieldErrors) {
+  const errors: VehicleErrors = {};
+  const unmatched: string[] = [];
+
+  for (const [key, messages] of Object.entries(fieldErrors)) {
+    const field = SERVER_FIELD_TO_FORM_FIELD[key];
+
+    if (!field) {
+      unmatched.push(...messages);
+      continue;
+    }
+
+    errors[field] = [errors[field], ...messages].filter(Boolean).join(" ");
+  }
+
+  return { errors, unmatched };
+}
+
+type LookupStatus = "loading" | "success" | "error";
+
+function describeLookupError(error: unknown, resource: string): string {
+  if (error instanceof ApiError && error.kind !== "network") {
+    return `Não foi possível carregar ${resource}. ${error.message}`;
+  }
+
+  return `Não foi possível carregar ${resource}. Verifique se a API está em execução.`;
+}
+
+function useLookupList<T>(
+  load: (signal: AbortSignal) => Promise<T[]>,
+  resource: string
+) {
+  const { status, data, error, retry } = useApiResource(load);
+  const items = useMemo(() => data ?? [], [data]);
+
+  return {
+    status,
+    items,
+    error: status === "error" ? describeLookupError(error, resource) : null,
+    retry,
+  };
+}
+
+function lookupPlaceholder(
+  status: LookupStatus,
+  isEmpty: boolean,
+  labels: { loading: string; error: string; empty: string; idle: string }
+): string {
+  if (status === "loading") return labels.loading;
+  if (status === "error") return labels.error;
+  if (isEmpty) return labels.empty;
+  return labels.idle;
+}
+
 export default function VehicleRegistration({
-  onSubmit,
+  onCreated,
+  onSubmittingChange,
+  vehicleToEdit,
 }: VehicleRegistrationProps) {
-  const [errors, setErrors] = useState<VehicleErrors>({});
   const [showErrors, setShowErrors] = useState(false);
+  const [serverErrors, setServerErrors] = useState<VehicleErrors>({});
+  const [submitting, setSubmitting] = useState(false);
+
+  const submittingRef = useRef(false);
   const uid = useId();
   const id = (field: string) => `${uid}-${field}`;
 
-  const [vehicle, setVehicle] = useState<VehicleDraft>(INITIAL_VEHICLE);
+  const initialVehicle = vehicleToEdit
+    ? toDraft(vehicleToEdit)
+    : INITIAL_VEHICLE;
+  const [vehicle, setVehicle] = useState<VehicleDraft>(initialVehicle);
+
   const [tagInput, setTagInput] = useState("");
   const [failedUrl, setFailedUrl] = useState<string | null>(null);
+
+  const manufacturers = useLookupList(getManufacturers, "os fabricantes");
+  const categories = useLookupList(getVehicleCategories, "as categorias");
+
+  const manufacturerItems = manufacturers.items;
+  const categoryItems = categories.items;
+
+  const errors: VehicleErrors = {
+    ...(showErrors
+      ? validateVehicle(vehicle, {
+          manufacturers: manufacturerItems,
+          categories: categoryItems,
+        })
+      : {}),
+    ...serverErrors,
+  };
+
+  function clearServerErrors() {
+    setServerErrors((current) =>
+      Object.keys(current).length > 0 ? {} : current
+    );
+  }
 
   function update<K extends keyof VehicleDraft>(
     key: K,
     value: VehicleDraft[K]
   ) {
     setVehicle((prev) => ({ ...prev, [key]: value }));
+    clearServerErrors();
   }
 
   function updateStat(key: StatKey, raw: string) {
@@ -145,48 +346,98 @@ export default function VehicleRegistration({
         [key]: clampStat(raw),
       },
     }));
+    clearServerErrors();
   }
 
-  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  function setSubmittingState(value: boolean) {
+    submittingRef.current = value;
+    setSubmitting(value);
+    onSubmittingChange?.(value);
+  }
+
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
-    const nextErrors = validateVehicle(vehicle);
+    if (submittingRef.current) return;
 
-    setErrors(nextErrors);
+    const nextErrors = validateVehicle(vehicle, {
+      manufacturers: manufacturerItems,
+      categories: categoryItems,
+    });
+
     setShowErrors(true);
+    setServerErrors({});
 
     if (hasErrors(nextErrors)) {
       return;
     }
 
-    const payload: VehicleDraft = {
-      ...vehicle,
-      name: vehicle.name.trim(),
-      manufacturer: vehicle.manufacturer.trim(),
-      price: vehicle.price.trim(),
-      tags: vehicle.tags.map((tag) => tag.trim()).filter(Boolean),
-      description: vehicle.description.trim(),
-      imageUrl: vehicle.imageUrl.trim(),
-    };
+    setSubmittingState(true);
 
-    console.log("Dados do veículo:", payload);
-    onSubmit?.(payload);
+    try {
+      const payload = toCreateVehicleRequest(vehicle);
+      const saved = vehicleToEdit
+        ? await updateVehicle(vehicleToEdit.id, payload)
+        : await createVehicle(payload);
+
+      if (!vehicleToEdit) handleReset();
+      onCreated?.(saved);
+    } catch (error) {
+      handleSubmitError(error);
+    } finally {
+      setSubmittingState(false);
+    }
+  }
+
+  function handleSubmitError(error: unknown) {
+    if (!(error instanceof ApiError)) {
+      toast.error(
+        "Não foi possível cadastrar o veículo",
+        getErrorMessage(error)
+      );
+      return;
+    }
+
+    switch (error.kind) {
+      case "validation": {
+        const { errors: fieldErrors, unmatched } = mapServerFieldErrors(
+          error.fieldErrors
+        );
+        setServerErrors(fieldErrors);
+        toast.error(
+          "Revise os dados do veículo",
+          unmatched.length > 0 ? unmatched.join(" ") : error.message
+        );
+        break;
+      }
+      case "not-found":
+        // Fabricante ou categoria removidos: recarrega as opções dos selects.
+        toast.error("Registro não encontrado", error.message);
+        manufacturers.retry();
+        categories.retry();
+        break;
+      case "conflict":
+        toast.error("Conflito ao salvar o veículo", error.message);
+        break;
+      default:
+        toast.error("Não foi possível cadastrar o veículo", error.message);
+    }
   }
 
   function handleReset() {
     setVehicle(INITIAL_VEHICLE);
     setTagInput("");
     setFailedUrl(null);
-    setErrors({});
     setShowErrors(false);
+    setServerErrors({});
   }
 
   function addTag(raw: string) {
-    const tag = raw.replace(/,/g, "").trim();
+    const tag = raw.replace(/,/g, "").trim().replace(/\s+/g, " ");
     if (!tag) return;
-    const exists = vehicle.tags.some(
-      (t) => t.toLowerCase() === tag.toLowerCase()
-    );
+    // Mesma regra da API: "Tunável", "tunavel" e "TUNAVEL" são a mesma tag.
+    const slug = slugify(tag);
+    const exists = vehicle.tags.some((t) => slugify(t) === slug);
     if (!exists) update("tags", [...vehicle.tags, tag]);
     setTagInput("");
   }
@@ -226,14 +477,28 @@ export default function VehicleRegistration({
       : null;
 
   const vehicleName = vehicle.name.trim();
-  const vehicleMaker = vehicle.manufacturer.trim();
   const vehicleDescription = vehicle.description.trim();
 
-  useEffect(() => {
-    if (!showErrors) return;
+  const vehicleMaker =
+    manufacturerItems.find((m) => m.id === vehicle.manufacturerId)?.name ?? "";
+  const vehicleCategory =
+    categoryItems.find((c) => c.id === vehicle.categoryId)?.name ?? "";
 
-    setErrors(validateVehicle(vehicle));
-  }, [vehicle, showErrors]);
+  const manufacturersUnavailable =
+    manufacturers.status !== "success" || manufacturerItems.length === 0;
+  const categoriesUnavailable =
+    categories.status !== "success" || categoryItems.length === 0;
+
+  const manufacturerStatusId =
+    manufacturers.status === "error" ||
+    (manufacturers.status === "success" && manufacturerItems.length === 0)
+      ? id("manufacturer-status")
+      : undefined;
+  const categoryStatusId =
+    categories.status === "error" ||
+    (categories.status === "success" && categoryItems.length === 0)
+      ? id("category-status")
+      : undefined;
 
   return (
     <div className={styles.root}>
@@ -243,6 +508,7 @@ export default function VehicleRegistration({
           id="vehicle-registration-form"
           onSubmit={handleSubmit}
           noValidate
+          aria-busy={submitting}
         >
           <section className={styles.panel} aria-labelledby={id("general")}>
             <h2 id={id("general")} className={styles.panelTitle}>
@@ -282,33 +548,90 @@ export default function VehicleRegistration({
               </div>
 
               <div className={styles.field}>
-                <label htmlFor={id("maker")} className={styles.label}>
+                <label htmlFor={id("manufacturer")} className={styles.label}>
                   Fabricante / Marca
                   <span className={styles.required} aria-hidden>
                     *
                   </span>
                 </label>
-                <input
-                  id={id("maker")}
-                  className={styles.control}
-                  type="text"
-                  required
-                  placeholder="Pfister"
-                  value={vehicle.manufacturer}
-                  onChange={(e) => update("manufacturer", e.target.value)}
-                  aria-invalid={Boolean(errors.manufacturer)}
-                  aria-describedby={
-                    errors.name ? id("manufacture-error") : undefined
-                  }
-                />
+                <div className={styles.selectWrap}>
+                  <select
+                    id={id("manufacturer")}
+                    className={`${styles.control} ${styles.select} ${
+                      vehicle.manufacturerId === null ? styles.selectEmpty : ""
+                    }`}
+                    required
+                    disabled={manufacturersUnavailable}
+                    value={vehicle.manufacturerId ?? ""}
+                    onChange={(e: ChangeEvent<HTMLSelectElement>) =>
+                      update("manufacturerId", parseOptionId(e.target.value))
+                    }
+                    aria-busy={manufacturers.status === "loading"}
+                    aria-invalid={Boolean(errors.manufacturerId)}
+                    aria-describedby={describedBy(
+                      manufacturerStatusId,
+                      errors.manufacturerId && id("manufacturer-error")
+                    )}
+                  >
+                    <option value="">
+                      {lookupPlaceholder(
+                        manufacturers.status,
+                        manufacturerItems.length === 0,
+                        {
+                          loading: "Carregando fabricantes…",
+                          error: "Fabricantes indisponíveis",
+                          empty: "Nenhum fabricante cadastrado",
+                          idle: "Selecione um fabricante",
+                        }
+                      )}
+                    </option>
+                    {manufacturerItems.map((manufacturer) => (
+                      <option key={manufacturer.id} value={manufacturer.id}>
+                        {manufacturer.name}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown
+                    size={16}
+                    className={styles.selectIcon}
+                    aria-hidden
+                  />
+                </div>
 
-                {errors.manufacturer && (
+                {manufacturers.status === "error" && (
                   <p
-                    id={id("manufacture-error")}
+                    id={id("manufacturer-status")}
                     className={styles.fieldError}
                     role="alert"
                   >
-                    {errors.manufacturer}
+                    {manufacturers.error}{" "}
+                    <button
+                      type="button"
+                      className={styles.retry}
+                      onClick={manufacturers.retry}
+                    >
+                      Tentar novamente
+                    </button>
+                  </p>
+                )}
+
+                {manufacturers.status === "success" &&
+                  manufacturerItems.length === 0 && (
+                    <p
+                      id={id("manufacturer-status")}
+                      className={styles.fieldHint}
+                    >
+                      Cadastre um fabricante na API para continuar.
+                    </p>
+                  )}
+
+                {errors.manufacturerId && (
+                  <p
+                    id={id("manufacturer-error")}
+                    className={styles.fieldError}
+                    role="alert"
+                  >
+                    {errors.manufacturerId}
                   </p>
                 )}
               </div>
@@ -316,11 +639,15 @@ export default function VehicleRegistration({
               <div className={styles.field}>
                 <label htmlFor={id("price")} className={styles.label}>
                   Preço (GTA$)
+                  <span className={styles.required} aria-hidden>
+                    *
+                  </span>
                 </label>
                 <input
                   id={id("price")}
                   className={styles.control}
                   type="number"
+                  required
                   min={0}
                   step={1}
                   inputMode="numeric"
@@ -346,19 +673,44 @@ export default function VehicleRegistration({
               <div className={styles.field}>
                 <label htmlFor={id("category")} className={styles.label}>
                   Categoria principal
+                  <span className={styles.required} aria-hidden>
+                    *
+                  </span>
                 </label>
                 <div className={styles.selectWrap}>
                   <select
                     id={id("category")}
-                    className={`${styles.control} ${styles.select}`}
-                    value={vehicle.category}
+                    className={`${styles.control} ${styles.select} ${
+                      vehicle.categoryId === null ? styles.selectEmpty : ""
+                    }`}
+                    required
+                    disabled={categoriesUnavailable}
+                    value={vehicle.categoryId ?? ""}
                     onChange={(e: ChangeEvent<HTMLSelectElement>) =>
-                      update("category", e.target.value as VehicleCategory)
+                      update("categoryId", parseOptionId(e.target.value))
                     }
+                    aria-busy={categories.status === "loading"}
+                    aria-invalid={Boolean(errors.categoryId)}
+                    aria-describedby={describedBy(
+                      categoryStatusId,
+                      errors.categoryId && id("category-error")
+                    )}
                   >
-                    {CATEGORIES.map((category) => (
-                      <option key={category} value={category}>
-                        {category}
+                    <option value="">
+                      {lookupPlaceholder(
+                        categories.status,
+                        categoryItems.length === 0,
+                        {
+                          loading: "Carregando categorias…",
+                          error: "Categorias indisponíveis",
+                          empty: "Nenhuma categoria cadastrada",
+                          idle: "Selecione uma categoria",
+                        }
+                      )}
+                    </option>
+                    {categoryItems.map((category) => (
+                      <option key={category.id} value={category.id}>
+                        {category.name}
                       </option>
                     ))}
                   </select>
@@ -368,6 +720,40 @@ export default function VehicleRegistration({
                     aria-hidden
                   />
                 </div>
+
+                {categories.status === "error" && (
+                  <p
+                    id={id("category-status")}
+                    className={styles.fieldError}
+                    role="alert"
+                  >
+                    {categories.error}{" "}
+                    <button
+                      type="button"
+                      className={styles.retry}
+                      onClick={categories.retry}
+                    >
+                      Tentar novamente
+                    </button>
+                  </p>
+                )}
+
+                {categories.status === "success" &&
+                  categoryItems.length === 0 && (
+                    <p id={id("category-status")} className={styles.fieldHint}>
+                      Cadastre uma categoria na API para continuar.
+                    </p>
+                  )}
+
+                {errors.categoryId && (
+                  <p
+                    id={id("category-error")}
+                    className={styles.fieldError}
+                    role="alert"
+                  >
+                    {errors.categoryId}
+                  </p>
+                )}
               </div>
 
               <div className={`${styles.field} ${styles.full}`}>
@@ -392,27 +778,58 @@ export default function VehicleRegistration({
                     id={id("tags")}
                     className={styles.tagInput}
                     type="text"
+                    maxLength={TAG_MAX_LENGTH}
                     placeholder="Adicionar e Enter"
                     value={tagInput}
                     onChange={(e) => setTagInput(e.target.value)}
                     onKeyDown={handleTagKeyDown}
                     onBlur={() => addTag(tagInput)}
+                    aria-invalid={Boolean(errors.tags)}
+                    aria-describedby={
+                      errors.tags ? id("tags-error") : undefined
+                    }
                   />
                 </div>
+                {errors.tags && (
+                  <p
+                    id={id("tags-error")}
+                    className={styles.fieldError}
+                    role="alert"
+                  >
+                    {errors.tags}
+                  </p>
+                )}
               </div>
 
               <div className={`${styles.field} ${styles.full}`}>
                 <label htmlFor={id("description")} className={styles.label}>
                   Breve descrição
+                  <span className={styles.required} aria-hidden>
+                    *
+                  </span>
                 </label>
                 <textarea
                   id={id("description")}
                   className={`${styles.control} ${styles.textarea}`}
                   rows={3}
+                  required
                   placeholder="Breve descrição"
                   value={vehicle.description}
                   onChange={(e) => update("description", e.target.value)}
+                  aria-invalid={Boolean(errors.description)}
+                  aria-describedby={
+                    errors.description ? id("description-error") : undefined
+                  }
                 />
+                {errors.description && (
+                  <p
+                    id={id("description-error")}
+                    className={styles.fieldError}
+                    role="alert"
+                  >
+                    {errors.description}
+                  </p>
+                )}
               </div>
             </div>
           </section>
@@ -461,6 +878,11 @@ export default function VehicleRegistration({
                 );
               })}
             </div>
+            {errors.stats && (
+              <p className={styles.fieldError} role="alert">
+                {errors.stats}
+              </p>
+            )}
           </section>
 
           <section className={styles.panel} aria-labelledby={id("media")}>
@@ -479,6 +901,10 @@ export default function VehicleRegistration({
                 placeholder="https://..."
                 value={vehicle.imageUrl}
                 onChange={(e) => update("imageUrl", e.target.value)}
+                aria-invalid={Boolean(errors.imageUrl)}
+                aria-describedby={
+                  errors.imageUrl ? id("imageUrl-error") : undefined
+                }
               />
             </div>
 
@@ -524,6 +950,7 @@ export default function VehicleRegistration({
               type="button"
               className={styles.btnGhost}
               onClick={handleReset}
+              disabled={submitting}
             >
               Limpar
             </button>
@@ -550,7 +977,9 @@ export default function VehicleRegistration({
                   Sem imagem
                 </span>
               )}
-              <span className={styles.badge}>{vehicle.category}</span>
+              {vehicleCategory && (
+                <span className={styles.badge}>{vehicleCategory}</span>
+              )}
             </div>
 
             <div className={styles.cardBody}>

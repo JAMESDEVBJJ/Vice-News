@@ -1,4 +1,6 @@
 .card {
+  position: relative;
+  isolation: isolate;
   display: flex;
   flex-direction: column;
   min-width: 0;
@@ -17,8 +19,6 @@
   box-shadow: 0 24px 48px -28px color-mix(in srgb, var(--color-neon-pink) 60%, transparent);
 }
 
-/* Mídia */
-
 .media {
   position: relative;
   aspect-ratio: 16 / 10;
@@ -26,7 +26,6 @@
   background: var(--color-ink-950);
 }
 
-/* Escurece o topo (legibilidade das pílulas) e funde a base com o corpo do card */
 .media::after {
   content: "";
   position: absolute;
@@ -96,30 +95,10 @@
   color: var(--color-fog-300, #cfc8d8);
 }
 
-.pillStatus {
-  top: 0.75rem;
-  left: 0.75rem;
-}
-
-.pillConfirmed {
-  color: var(--color-neon-pink);
-  border-color: color-mix(in srgb, var(--color-neon-pink) 45%, transparent);
-}
-
-.pillConfirmed::before {
-  content: "";
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: currentColor;
-}
-
 .pillCategory {
   bottom: 0.75rem;
   left: 0.75rem;
 }
-
-/* Corpo */
 
 .body {
   display: flex;
@@ -137,11 +116,6 @@
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--color-neon-purple, #9d5cff);
-}
-
-.brandPending {
-  letter-spacing: 0.12em;
-  color: var(--color-fog-500);
 }
 
 .name {
@@ -176,8 +150,6 @@
   text-transform: uppercase;
   color: var(--color-fog-300, #cfc8d8);
 }
-
-/* Desempenho */
 
 .stats {
   margin-top: auto;
@@ -250,8 +222,6 @@
   }
 }
 
-/* Rodapé */
-
 .footer {
   display: flex;
   align-items: center;
@@ -273,19 +243,6 @@
   font-weight: 700;
   letter-spacing: 0.02em;
   color: #fff;
-}
-
-.pricePending {
-  font-size: 0.8rem;
-  color: var(--color-fog-500);
-}
-
-.seats {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  font-size: 0.72rem;
-  color: var(--color-fog-500);
 }
 
 .details {
@@ -312,6 +269,14 @@
 .details:hover svg,
 .card:hover .details svg {
   transform: translateX(3px);
+}
+
+.details::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  cursor: pointer;
 }
 
 .details:focus-visible {

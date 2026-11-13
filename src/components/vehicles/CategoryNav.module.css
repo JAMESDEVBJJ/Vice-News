@@ -42,7 +42,6 @@
     box-shadow 200ms ease;
 }
 
-/* Barra que indica a categoria selecionada */
 .tile::after {
   content: "";
   position: absolute;

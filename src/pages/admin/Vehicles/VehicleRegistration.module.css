@@ -176,6 +176,52 @@
   pointer-events: none;
 }
 
+.selectEmpty {
+  color: var(--vr-faint);
+}
+
+.select option {
+  color: var(--vr-text);
+  background: var(--vr-field);
+}
+
+.control:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.control:disabled:hover {
+  border-color: var(--vr-line);
+}
+
+.fieldHint {
+  margin: 6px 0 0;
+  color: var(--vr-muted);
+  font-size: 0.8rem;
+}
+
+.retry {
+  padding: 0;
+  font: inherit;
+  font-weight: 600;
+  color: var(--vr-pink);
+  background: none;
+  border: 0;
+  border-radius: 4px;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.retry:hover {
+  color: var(--vr-text);
+}
+
+.retry:focus-visible {
+  outline: 2px solid var(--vr-pink);
+  outline-offset: 2px;
+}
+
 .tagBox {
   display: flex;
   flex-wrap: wrap;
@@ -447,6 +493,12 @@
   border-color: var(--vr-muted);
 }
 
+.btnGhost:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+  border-color: var(--vr-line-strong);
+}
+
 .btnPrimary {
   color: #fff;
   background: linear-gradient(135deg, var(--vr-magenta), var(--vr-pink));
@@ -602,8 +654,6 @@
   box-shadow: 0 0 10px rgba(255, 61, 139, 0.4);
   transition: width 0.25s ease;
 }
-
-/* ───────── Prévia: tags ───────── */
 
 .previewTags {
   margin-top: 18px;
