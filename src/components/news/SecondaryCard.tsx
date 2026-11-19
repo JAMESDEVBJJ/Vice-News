@@ -7,7 +7,6 @@ interface SecondaryCardProps {
   article: NewsArticle
 }
 
-/** Card horizontal usado ao lado do destaque principal. */
 export default function SecondaryCard({ article }: SecondaryCardProps) {
   return (
     <article className={styles.card}>

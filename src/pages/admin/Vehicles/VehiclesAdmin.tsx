@@ -9,11 +9,7 @@ import { getVehicleById, type VehicleResponse } from "../../../api/vehiclesApi";
 import { toast } from "../../../lib/toast";
 import { useApiResource } from "../../../hooks/useApiResource";
 
-interface VehiclesAdminProps {
-  vehicleToEdit?: VehicleResponse;
-}
-
-export default function VehiclesAdmin({ vehicleToEdit }: VehiclesAdminProps) {
+export default function VehiclesAdmin() {
   const navigate = useNavigate();
   const [submitting, setSubmitting] = useState(false);
 
@@ -36,7 +32,7 @@ export default function VehiclesAdmin({ vehicleToEdit }: VehiclesAdminProps) {
     [vehicleId]
   );
 
-  const { status, data, error, retry } = useApiResource(loadVehicle);
+  const { data } = useApiResource(loadVehicle);
 
   return (
     <div className={pageStyles.page}>

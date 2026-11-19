@@ -10,10 +10,6 @@ interface ResourceState<T> {
 
 const LOADING = { status: "loading", data: undefined, error: null } as const;
 
-/**
- * Carrega um recurso da API ao montar o componente, cancelando a requisição ao
- * desmontar. `load` deve ser estável (função de módulo ou memoizada).
- */
 export function useApiResource<T>(load: (signal: AbortSignal) => Promise<T>) {
   const [state, setState] = useState<ResourceState<T>>(LOADING);
   const [attempt, setAttempt] = useState(0);

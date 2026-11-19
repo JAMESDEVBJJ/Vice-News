@@ -9,7 +9,6 @@ import {
   type LucideProps,
 } from "lucide-react";
 
-/** Ícone de cada categoria pelo slug devolvido por GET /api/vehicle-categories. */
 const ICONS_BY_SLUG: Record<string, LucideIcon> = {
   carros: Car,
   motos: Bike,
