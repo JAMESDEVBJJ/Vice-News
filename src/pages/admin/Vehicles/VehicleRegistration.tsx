@@ -7,7 +7,6 @@ import {
   type CSSProperties,
   type FormEvent,
   type KeyboardEvent,
-  useCallback,
 } from "react";
 import { CheckCircle2, ChevronDown, ImageOff, X } from "lucide-react";
 import styles from "./VehicleRegistration.module.css";
@@ -19,7 +18,6 @@ import {
 } from "../../../api/vehicleLookupsApi";
 import {
   createVehicle,
-  getVehicleById,
   type CreateVehicleRequest,
   type VehicleResponse,
   updateVehicle,
@@ -32,7 +30,6 @@ import {
 import { useApiResource } from "../../../hooks/useApiResource";
 import { slugify } from "../../../lib/slug";
 import { toast } from "../../../lib/toast";
-import { useParams } from "react-router-dom";
 
 const STATS = [
   { key: "topSpeed", label: "Velocidade Máxima" },

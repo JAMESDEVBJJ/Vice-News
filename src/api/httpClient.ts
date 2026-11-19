@@ -151,6 +151,10 @@ export async function apiRequest<T>(
     throw await toApiError(response);
   }
 
+  if (response.status === 204) {
+    return undefined as T;
+  }
+
   let data: unknown;
 
   try {

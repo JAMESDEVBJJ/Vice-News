@@ -6,9 +6,7 @@ import styles from "./VehicleFilters.module.css";
 interface VehicleFiltersProps {
   query: string;
   onQueryChange: (value: string) => void;
-  /** Tags disponíveis para filtro. */
   tags: VehicleTagResponse[];
-  /** Slugs das tags selecionadas. */
   activeTags: string[];
   onToggleTag: (slug: string) => void;
 }

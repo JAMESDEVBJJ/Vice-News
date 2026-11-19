@@ -1,6 +1,5 @@
 import { apiRequest } from "./httpClient";
 
-/** Formato comum dos DTOs ManufacturerDto, VehicleCategoryDto e VehicleTagDto. */
 export interface LookupItemResponse {
   id: number;
   name: string;
